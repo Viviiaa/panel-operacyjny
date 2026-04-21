@@ -6,92 +6,58 @@
 <title>SYSTEM OPERACYJNY : WYROCZNIA</title>
 
 <style>
-      :root {
+     :root {
             --acc: #00ff41;
             --dim: #003b00;
-            --glass: rgba(10, 10, 10, 0.9);
+            --glass: rgba(10, 10, 10, 0.85);
             --glow: 0 0 20px rgba(0, 255, 65, 0.3);
         }
 
         body, html {
             margin: 0; padding: 0; background: #000; color: var(--acc);
-            font-family: 'Segoe UI', sans-serif; overflow: hidden; height: 100vh;
-            zoom: 0.9; /* Idealna kompresja interfejsu */
+            font-family: 'Segoe UI', sans-serif; min-height: 100vh;
         }
 
-        /* --- BACKGROUND MATRIX ENGINE --- */
+        /* MATRIX TŁO - NA CAŁY EKRAN */
         #matrix-bg { position: fixed; inset: 0; z-index: -1; opacity: 0.15; }
 
-        /* --- ORACLE AVATAR Ξ --- */
+        /* PULSUJĄCY AVATAR Ξ */
         .oracle-avatar {
-            width: 70px; height: 70px; margin: 0 auto 15px; border: 2px solid var(--acc);
+            width: 80px; height: 80px; margin: 0 auto 20px; border: 2px solid var(--acc);
             border-radius: 50%; display: flex; align-items: center; justify-content: center;
             box-shadow: var(--glow); animation: pulse 3s infinite ease-in-out; position: relative;
         }
-        .oracle-avatar::before { content: "Ξ"; font-size: 35px; text-shadow: 0 0 15px var(--acc); }
-        .oracle-avatar::after {
-            content: ""; position: absolute; inset: -8px; border: 1px solid var(--dim);
-            border-radius: 50%; animation: rotate 10s linear infinite;
-        }
-        @keyframes pulse { 0%, 100% { transform: scale(1); box-shadow: 0 0 20px var(--acc); } 50% { transform: scale(1.05); box-shadow: 0 0 40px var(--acc); } }
-        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .oracle-avatar::before { content: "Ξ"; font-size: 40px; text-shadow: 0 0 15px var(--acc); }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
 
-        /* --- LOGIN PROTOCOL --- */
+        /* EKRAN LOGOWANIA */
         #loginOverlay {
-            position: fixed; inset: 0; background: radial-gradient(circle, #0a1a0a 0%, #000 100%);
-            z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
-        #accessCode {
-            background: transparent; border: 1px solid var(--acc); color: var(--acc);
-            padding: 15px; border-radius: 50px; text-align: center; font-size: 1.8rem;
-            outline: none; width: 320px; box-shadow: var(--glow); letter-spacing: 5px;
+            position: fixed; inset: 0; background: #000; z-index: 10000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
 
-        /* --- MAIN ARCHITECTURE --- */
+        /* GŁÓWNY INTERFEJS - DUŻY I SZKLANY */
         .app {
-            max-width: 1400px; height: 92vh; margin: 4vh auto;
-            background: var(--glass); backdrop-filter: blur(20px);
-            border: 2px solid var(--dim); border-radius: 25px; padding: 30px;
-            display: none; flex-direction: column; gap: 20px; box-shadow: 0 0 60px #000;
-            position: relative;
+            max-width: 1400px; margin: 40px auto; background: var(--glass);
+            backdrop-filter: blur(20px); border: 2px solid var(--dim); border-radius: 25px;
+            padding: 40px; box-shadow: 0 0 60px #000; display: none; flex-direction: column; gap: 30px;
         }
 
-        header { text-align: center; border-bottom: 1px solid var(--dim); padding-bottom: 15px; }
+        header { text-align: center; border-bottom: 1px solid var(--dim); padding-bottom: 20px; }
         h1 { font-family: 'Courier New', monospace; letter-spacing: 8px; margin: 0; text-transform: uppercase; }
-        .lead { font-size: 0.8rem; opacity: 0.6; letter-spacing: 2px; }
 
-        .main-grid { display: grid; grid-template-columns: 400px 1fr; gap: 30px; flex-grow: 1; overflow: hidden; }
+        .main-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 30px; }
+        .panel { background: rgba(20, 20, 20, 0.7); border: 1px solid var(--dim); border-radius: 20px; padding: 30px; }
         
-        /* --- PANELS --- */
-        .panel { 
-            background: rgba(20, 20, 20, 0.7); border: 1px solid var(--dim); 
-            border-radius: 18px; padding: 20px; display: flex; flex-direction: column; gap: 15px;
-            box-shadow: inset 0 0 20px #000;
-        }
-        h2 { color: #fff; font-size: 0.85rem; letter-spacing: 2px; text-transform: uppercase; border-bottom: 1px solid var(--dim); padding-bottom: 8px; }
+        h2 { color: #fff; font-size: 0.9rem; text-transform: uppercase; border-bottom: 1px solid var(--dim); padding-bottom: 10px; margin-top: 0; }
+        
+        #logs, #ocrTextarea { background: #000; border: 1px solid #222; color: var(--acc); font-family: 'Courier New', monospace; font-size: 14px; padding: 20px; border-radius: 12px; }
+        #logs { height: 250px; overflow-y: auto; }
+        #ocrTextarea { width: 100%; height: 450px; box-sizing: border-box; resize: vertical; outline: none; }
 
-        #logs, #ocrTextarea { 
-            background: #000; border: 1px solid #1a1a1a; color: var(--acc); 
-            font-family: 'Courier New', monospace; font-size: 12px; padding: 15px; border-radius: 12px; 
-        }
-        #logs { flex-grow: 1; overflow-y: auto; line-height: 1.5; }
-        #ocrTextarea { flex-grow: 1; resize: none; outline: none; border-left: 3px solid var(--dim); }
-
-        /* --- BUTTONS --- */
-        button, .filebtn {
-            background: linear-gradient(180deg, #002200 0%, #000 100%);
-            color: var(--acc); border: 1px solid var(--dim); padding: 12px;
-            border-radius: 10px; cursor: pointer; font-weight: bold; 
-            text-transform: uppercase; transition: 0.3s all;
-        }
-        button:hover { border-color: var(--acc); box-shadow: var(--glow); color: #fff; transform: translateY(-2px); }
-        .btn-main { background: var(--acc) !important; color: #000 !important; }
-
-        /* --- ERROR LOGIC --- */
-        #errorOverlay {
-            position: fixed; inset: 0; background: rgba(120, 0, 0, 0.95);
-            display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10001;
-        }
+        input { background: transparent; border: 1px solid var(--acc); color: var(--acc); padding: 15px; border-radius: 50px; text-align: center; font-size: 1.5rem; outline: none; width: 300px; }
+        button { background: transparent; color: var(--acc); border: 1px solid var(--acc); padding: 12px 25px; border-radius: 10px; cursor: pointer; font-weight: bold; text-transform: uppercase; transition: 0.3s; }
+        button:hover { background: var(--acc); color: #000; box-shadow: 0 0 25px var(--acc); }
 </style>
 
 <!-- Libraries -->
@@ -230,28 +196,35 @@
 <script>
 
      // --- ANIMACJA MATRIX ---
-    const canvas = document.getElementById('matrix-bg');
-    const ctx = canvas.getContext('2d');
+   onst canvas = document.getElementById('matrix-bg');
+const ctx = canvas.getContext('2d');
+
+function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    const chars = "Ξ0123456789ABCDEFWYROCZNIA";
-    const fontSize = 14;
-    const columns = canvas.width / fontSize;
-    const drops = Array(Math.floor(columns)).fill(1);
+}
 
-    function drawMatrix() {
-        ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "#00ff41";
-        ctx.font = fontSize + "px monospace";
-        for (let i = 0; i < drops.length; i++) {
-            const text = chars[Math.floor(Math.random() * chars.length)];
-            ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-            if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
-            drops[i]++;
-        }
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas(); // Startujemy z pełnym rozmiarem
+
+const chars = "Ξ0123456789WYROCZNIA";
+const fontSize = 16; // Nieco większe znaki, żeby było je widać!
+const columns = canvas.width / fontSize;
+const drops = Array(Math.floor(columns)).fill(1);
+
+function drawMatrix() {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#00ff41";
+    ctx.font = fontSize + "px monospace";
+    for (let i = 0; i < drops.length; i++) {
+        const text = chars[Math.floor(Math.random() * chars.length)];
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+        drops[i]++;
     }
-    setInterval(drawMatrix, 35);
+}
+setInterval(drawMatrix, 35);
 
     async function handleFiles(files) {
         processedSheets = [];
