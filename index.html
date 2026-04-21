@@ -531,20 +531,6 @@
     let processedSheets = [];
     const log = (m) => { const l = document.getElementById('logs'); l.innerHTML += `[${new Date().toLocaleTimeString()}] ${m}<br>`; l.scrollTop = l.scrollHeight; };
 
-   function checkAccess() {
-    console.log("Próba logowania...");
-    const input = document.getElementById('accessCode');
-    const overlay = document.getElementById('loginOverlay');
-    
-    if (input && input.value === "cieszkowska1995") {
-        overlay.style.display = "none";
-        log("Autoryzacja pomyślna. System Operacyjny gotowy.");
-    } else {
-        alert("BŁĄD: Nieprawidłowy kod dostępu.");
-        if(input) input.value = "";
-        }
-    }
-
     async function handleFiles(files) {
         processedSheets = [];
         for (let file of files) {
