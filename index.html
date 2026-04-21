@@ -6,130 +6,178 @@
 <title>SYSTEM OPERACYJNY: WYROCZNIA</title>
 
 <style>
-         :root {
-        --neon: #00ff41;
+        :root {
+        --acc: #00ff41;
         --white: #ffffff;
-        --glass-panel: rgba(12, 12, 12, 0.98);
+        --deep: #050505;
+        --glass: rgba(10, 10, 10, 0.95);
         --border-glow: rgba(0, 255, 65, 0.2);
     }
 
     body, html {
-        margin: 0; padding: 0; background: #000; color: var(--neon);
-        font-family: 'Inter', 'Segoe UI', sans-serif; min-height: 100vh; overflow-x: hidden;
+        margin: 0; padding: 0;
+        background: #000 !important;
+        color: var(--acc) !important;
+        font-family: 'Inter', 'Segoe UI', sans-serif;
+        min-height: 100vh;
+        overflow-x: hidden;
     }
 
-    /* --- TWOJE LOGOWANIE (ZACHOWANE 1:1) --- */
+    /* --- TWOJE IDEALNE LOGOWANIE (NIETYKALNE) --- */
     #loginOverlay {
         position: fixed; inset: 0; background: #000; z-index: 10000;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
     }
     #loginOverlay::before {
         content: "Ξ"; font-size: 110px; color: var(--white);
-        text-shadow: 0 0 50px var(--neon); margin-bottom: 50px;
+        text-shadow: 0 0 50px var(--acc); margin-bottom: 50px;
         animation: breath-gate 4s infinite ease-in-out;
     }
     #loginOverlay::after {
         content: ""; position: absolute; width: 280px; height: 280px;
-        border: 2px solid var(--neon); border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
-        animation: rotate-portal 10s infinite linear; box-shadow: inset 0 0 40px var(--neon); opacity: 0.3;
+        border: 2px solid var(--acc); border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+        animation: rotate-portal 10s infinite linear; box-shadow: inset 0 0 40px var(--acc); opacity: 0.3;
     }
-    @keyframes rotate-portal { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-    @keyframes breath-gate { 0%, 100% { transform: scale(1); opacity: 0.4; } 50% { transform: scale(1.05); opacity: 1; } }
     #accessCode {
         background: transparent; border: none; border-bottom: 2px solid var(--white);
         color: var(--white); font-size: 4rem; text-align: center; width: 450px;
         outline: none; letter-spacing: 15px; position: relative; z-index: 10001;
     }
+    @keyframes rotate-portal { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes breath-gate { 0%, 100% { transform: scale(1); opacity: 0.4; } 50% { transform: scale(1.05); opacity: 1; } }
 
-    /* --- NOWOCZESNY SYSTEM (FULL RENOVATION) --- */
+    /* --- REWOLUCJA SYSTEMOWA: MODUŁY WYROCZNI --- */
     .app {
-        max-width: 1750px; margin: 40px auto; padding: 50px;
-        background: var(--glass-panel); backdrop-filter: blur(60px);
-        border: 1px solid var(--border-glow); border-radius: 40px;
-        box-shadow: 0 50px 150px #000; position: relative;
+        max-width: 1850px;
+        margin: 40px auto;
+        padding: 60px;
+        background: var(--glass);
+        backdrop-filter: blur(60px);
+        border: 1px solid var(--border-glow);
+        border-radius: 50px;
+        box-shadow: 0 0 150px rgba(0,0,0,1);
+        display: none; /* Pokażemy po logowaniu */
+        position: relative;
     }
 
-    /* BAJER: DYNAMICZNY SKANER LASEROWY NA GÓRZE APKI */
-    .app::before {
-        content: ""; position: absolute; top: 0; left: -100%; width: 100%; height: 2px;
-        background: linear-gradient(90deg, transparent, var(--neon), transparent);
-        animation: scan-line 6s linear infinite; z-index: 100;
+    /* BAJER 1: LATAJĄCE LOGO Ξ W TLE CAŁEGO SYSTEMU */
+    .app::after {
+        content: "Ξ"; position: absolute; top: 10%; left: 50%; transform: translateX(-50%);
+        font-size: 400px; color: var(--acc); opacity: 0.02; pointer-events: none; z-index: 0;
     }
-    @keyframes scan-line { 0% { left: -100%; } 100% { left: 100%; } }
 
-    /* LAYOUT: TWOJE 3 FILARY MOCY */
-    .layout { display: grid; grid-template-columns: 400px 1fr 400px; gap: 30px; align-items: start; }
+    /* UKŁAD TRZYKOLUMNOWY (NAPRAWIONY - KONIEC ZE ZBIJANIEM DO LEWEJ) */
+    .layout {
+        display: grid;
+        grid-template-columns: 420px 1fr 420px;
+        gap: 30px;
+        position: relative;
+        z-index: 1;
+    }
 
-    /* PANELE - "SZKLANE KRYPTY" Z GŁĘBIĄ 3D */
+    /* PANELE - SZKLANE KRYPTY Z ANIMOWANYM BORDEREM */
     .panel, #leftPanel, #centerPanel, #rightPanel, .section-card {
-        background: rgba(0, 0, 0, 0.7) !important;
+        background: rgba(0, 0, 0, 0.8) !important;
         border: 1px solid rgba(0, 255, 65, 0.1) !important;
-        border-radius: 25px !important; padding: 35px !important;
-        margin-bottom: 25px; box-shadow: inset 0 0 40px #000;
-        transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        position: relative; overflow: hidden;
+        border-radius: 30px !important;
+        padding: 40px !important;
+        position: relative;
+        transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: inset 0 0 30px #000;
+        overflow: hidden;
     }
 
-    /* SUBTELNY "DUCH LOGO Ξ" W TLE KAŻDEGO PANELU */
-    .panel::after {
-        content: "Ξ"; position: absolute; bottom: -20px; right: -10px;
-        font-size: 100px; color: var(--neon); opacity: 0.03; pointer-events: none;
+    /* BAJER 2: LATAJĄCY NEON (SKANER) WEWNĄTRZ KAŻDEGO PANELU */
+    .panel::before {
+        content: ""; position: absolute; top: -100%; left: 0; width: 100%; height: 50%;
+        background: linear-gradient(180deg, transparent, rgba(0, 255, 65, 0.05), transparent);
+        animation: panel-scan 8s infinite linear;
     }
+    @keyframes panel-scan { 0% { top: -100%; } 100% { top: 200%; } }
 
     .panel:hover {
-        border-color: var(--neon) !important;
-        transform: translateY(-8px) scale(1.01);
-        box-shadow: 0 20px 60px rgba(0, 255, 65, 0.05);
+        border-color: var(--acc) !important;
+        transform: translateY(-10px);
+        box-shadow: 0 30px 60px rgba(0, 255, 65, 0.05);
     }
 
-    /* BIAŁE NAGŁÓWKI - NAJWYŻSZA CZYTELNOŚĆ */
-    strong, h2, .small strong {
-        color: var(--white) !important; text-transform: uppercase !important;
-        letter-spacing: 6px !important; font-size: 0.8rem !important;
-        border-left: 5px solid var(--neon); padding-left: 20px;
-        margin-bottom: 30px; display: block;
-        text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+    /* NAGŁÓWKI: BIAŁY ABSOLUT - TWOJA DUMA */
+    strong, h2, .small strong, .panel-title {
+        color: var(--white) !important;
+        text-transform: uppercase !important;
+        letter-spacing: 7px !important;
+        font-size: 0.8rem !important;
+        font-weight: 900 !important;
+        border-left: 6px solid var(--acc);
+        padding-left: 20px;
+        margin-bottom: 30px;
+        display: block;
+        text-shadow: 0 0 20px rgba(255,255,255,0.2);
     }
 
-    /* PRZYCISKI - "CYBER-PILLS" Z POŚWIATĄ */
+    /* PRZYCISKI: NEONOWE CAPSULES (MODERN LUXURY) */
     button, .btn, .filebtn {
-        background: transparent !important; border: 1px solid var(--neon) !important;
-        color: var(--neon) !important; padding: 15px 35px !important;
-        border-radius: 60px !important; font-weight: bold; text-transform: uppercase;
-        letter-spacing: 4px; font-size: 0.75rem; cursor: pointer;
-        transition: 0.4s all; position: relative;
+        background: transparent !important;
+        border: 1px solid var(--acc) !important;
+        color: var(--acc) !important;
+        padding: 16px 35px !important;
+        border-radius: 100px !important;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 4px;
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: 0.3s all;
+        display: inline-block !important;
+        text-decoration: none;
     }
-
     button:hover, .filebtn:hover {
-        background: var(--neon) !important; color: #000 !important;
-        box-shadow: 0 0 40px var(--neon); transform: translateY(-3px);
+        background: var(--acc) !important;
+        color: #000 !important;
+        box-shadow: 0 0 40px var(--acc);
+        transform: scale(1.05);
     }
 
-    /* EKSPORT XLSX - SPECJALNY STATUS "PREMIUM" */
-    button[onclick*="generateExcel"] {
-        background: var(--neon) !important; color: #000 !important;
-        box-shadow: 0 0 30px var(--neon); animation: pulse-btn 3s infinite;
+    /* PRZYCISK EKSPORTU - PULSUJĄCY PUNKT MOCY */
+    button[onclick*="generateExcel"], .btn-main {
+        border-color: var(--white) !important;
+        color: var(--white) !important;
+        animation: pulse-border 2s infinite;
     }
-    @keyframes pulse-btn { 0%, 100% { opacity: 1; } 50% { opacity: 0.8; transform: scale(1.02); } }
+    @keyframes pulse-border {
+        0% { box-shadow: 0 0 0 0 rgba(255,255,255,0.4); }
+        70% { box-shadow: 0 0 0 20px rgba(255,255,255,0); }
+        100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); }
+    }
 
-    /* EDYTOR I LOGI - PANCERNA CZERŃ */
-    #log, #logs, #ocrTextarea {
-        background: #000 !important; border: 1px solid #111 !important;
-        color: var(--neon) !important; font-family: 'JetBrains Mono', 'Fira Code', monospace;
-        padding: 25px; border-radius: 20px; line-height: 1.8; font-size: 14px;
-        transition: 0.3s;
+    /* TERMINALE - PANCERNA CZERŃ */
+    #log, #logs, #ocrTextarea, #tableEditor {
+        background: #000 !important;
+        border: 1px solid #111 !important;
+        color: var(--acc) !important;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 14px;
+        line-height: 1.8;
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: inset 0 0 20px #000;
     }
-    #ocrTextarea:focus { border-left: 5px solid var(--neon) !important; box-shadow: inset 0 0 20px rgba(0, 255, 65, 0.05); outline: none; }
+    #ocrTextarea { border-left: 5px solid var(--acc) !important; }
 
     /* STATUSY I CHIPY */
-    .pill, .chip {
-        background: #000; border: 1px solid var(--dim); color: #fff;
-        padding: 6px 16px; border-radius: 8px; font-size: 10px;
-        text-transform: uppercase; letter-spacing: 2px;
+    .pill, .chip, .pilli {
+        background: var(--acc);
+        color: #000;
+        font-weight: bold;
+        padding: 6px 15px;
+        border-radius: 4px;
+        font-size: 9px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
     }
 
-    /* MATRIX TŁO - SUBTELNY KLIMAT */
-    #matrix-bg { position: fixed; inset: 0; z-index: -1; opacity: 0.1; }
+    /* MATRIX TŁO */
+    #matrix-bg { position: fixed; inset: 0; z-index: -1; opacity: 0.15; }
     }
 
 </style>
