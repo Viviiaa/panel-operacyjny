@@ -587,7 +587,9 @@ async function runOCROnCurrentCanvas(opts={binarize:true,scale:1.6}){
   setOcrStatus('rozpoznawanie');
   const ret = await worker.recognize(preDataURL);
   document.getElementById('ocrTextarea').value = ret.data.text; 
-  processedSheets.push({ name: currentView.name || "Dokument", rows: ret.data.text });
+  processedSheets.push({ 
+    name: currentView.name || "Dokument", 
+    rows: ret.data.text.split('\n').map(line => line.trim().split(/\s{2,}/)) 
   setProgress(90);
   const text = ret.data.text || '';
   setOcrStatus('gotowe');
@@ -771,7 +773,7 @@ reRunOCRBtn.addEventListener('click', async ()=>{
     showSheet(currentView.sheetIndex);
     log('Ponowne OCR: zastąpiono zawartość aktualnego arkusza');
   } else {
-    processedSheets.push({ fileIndex: currentView.fileIndex, pageIndex: currentView.pageIndex||0, name: (currentView.name || "Dokument") + "-ocr", rows: ret.data.text });
+    processedSheets.push({ fileIndex: currentView.fileIndex, pageIndex: currentView.pageIndex||0, name: (currentView.name || "Dokument") + "-ocr", rows: ret.data.text.split('\n').map(line => line.trim().split(/\s{2,}/)) });
     renderSheetsList();
     log('Ponowne OCR: dodano nowy arkusz');
   }
