@@ -49,6 +49,15 @@
 
 </head>
 <body>
+  <!-- EKRAN LOGOWANIA -->
+<div id="loginOverlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#000; color:#0f0; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:9999; font-family:monospace;">
+    <h1 style="color:#0f0; border-bottom: 2px solid #0f0; margin-bottom: 20px;">SYSTEM OPERACYJNY: WYROCZNIA</h1>
+    <p>PODAJ KOD DOSTĘPU:</p>
+    <input type="password" id="accessCode" style="background:#111; color:#0f0; border:1px solid #0f0; padding:10px; text-align:center; font-size:20px; outline:none;">
+    <button onclick="checkAccess()" style="margin-top:20px; background:#0f0; color:#000; border:none; padding:10px 20px; cursor:pointer; font-weight:bold;">AUTORYZUJ</button>
+    <p id="loginError" style="color:red; margin-top:10px; display:none;">DOSTĘP ZABLOKOWANY</p>
+</div>
+
 <div class="app" role="main">
   <header>
     <div class="logo">X</div>
@@ -632,17 +641,24 @@ exportBtn.addEventListener('click', () => {
   const wb = XLSX.utils.book_new();
 
   processedSheets.forEach(s => {
-    // 1. MAGIA: Dzielimy tekst na kolumny tam, gdzie są min. 2 spacje
-    const formattedRows = s.rows.map(row => {
-      if (typeof row === 'string') return row.trim().split(/\s{2,}/);
-      if (Array.isArray(row) && row.length === 1) return String(row[0]).trim().split(/\s{2,}/);
-      return row;
-    });
+    // 1. CZYSZCZENIE I LOGIKA UKŁADU: Dzielimy na wiersze i kolumny
+    const formattedRows = s.rows
+      .map(row => {
+        let textLine = "";
+        if (typeof row === 'string') textLine = row;
+        else if (Array.isArray(row) && row.length === 1) textLine = String(row[0]);
+        else return row;
 
-    // 2. Tworzymy arkusz z sformatowanych danych
+        // Dzielimy tam, gdzie są min. 2 spacje (pionowe rubryki)
+        return textLine.trim().split(/\s{2,}/);
+      })
+      // 2. USUWACZ PUSTYCH LINII: Pozbywamy się zbędnego syfu
+      .filter(row => row.length > 0 && row !== "");
+
+    // 3. Tworzymy arkusz
     const ws = XLSX.utils.aoa_to_sheet(formattedRows);
 
-    // 3. UPIĘKSZACZ: Automatyczne dopasowanie szerokości kolumn
+    // 4. UPIĘKSZACZ: Automatyczne szerokości kolumn (soczysty wygląd)
     if (formattedRows.length > 0) {
       const colWidths = formattedRows[0].map((_, i) => {
         return {
@@ -652,7 +668,7 @@ exportBtn.addEventListener('click', () => {
       ws['!cols'] = colWidths;
     }
     
-    // 4. Czyszczenie nazwy arkusza (limit 31 znaków dla Excela)
+    // 5. Czyszczenie nazwy arkuszau
     let sheetName = s.name.replace(/[\[\]\*\?\/\\:]/g, '').slice(0, 31) || 'Sheet';
     let base = sheetName, i = 1;
     while (wb.SheetNames.includes(sheetName)) sheetName = base.slice(0, 28) + '_' + (i++);
@@ -660,10 +676,11 @@ exportBtn.addEventListener('click', () => {
     XLSX.utils.book_append_sheet(wb, ws, sheetName);
   });
 
-  // 5. Generowanie i pobieranie pliku
+  // 6. Generowanie pliku
   XLSX.writeFile(wb, 'wyrocznia_export.xlsx');
-  log('Eksport do .xlsx wygenerowany (kolumny dopasowane i podzielone).');
+  log('Eksport do .xlsx gotowy: dane poukładane pionowo i wyczyszczone.');
 });
+
 
 
 
@@ -682,6 +699,26 @@ clearAllBtn.addEventListener('click', ()=>{ files=[]; resetUI(); filesInput.valu
 /* Init */
 resetUI();
 log('Gotowy — wybierz pliki, aby rozpocząć.');
+  function checkAccess() {
+    const code = document.getElementById('accessCode').value;
+    const correctCode = "cieszkowska1995"; // <--- Tu wpisz swoje tajne hasło
+
+    if (code === correctCode) {
+        document.getElementById('loginOverlay').style.display = 'none';
+        log("System autoryzowany. Witaj, Oliwio.");
+    } else {
+        document.getElementById('loginError').style.display = 'block';
+        document.getElementById('accessCode').value = '';
+    }
+}
+
+// Pozwala na zatwierdzenie hasła klawiszem Enter
+document.getElementById('accessCode').addEventListener('keypress', function (e) {
+    if (e.key === 'Enter') {
+        checkAccess();
+    }
+});
+
 </script>
 </body>
 </html>
