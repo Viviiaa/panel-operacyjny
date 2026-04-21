@@ -714,13 +714,79 @@ reRunOCRBtn.addEventListener('click', async ()=>{
   }
 });
 
+    function verifyInvoiceData(rows) {
+    let report = [];
+    log("SYSTEM: Rozpoczynam głęboką weryfikację logiki...");
+
+    rows.forEach((row, i) => {
+        const fullLine = row.join(' ').toUpperCase();
+        
+        // 1. WERYFIKACJA MATEMATYKI (Netto/VAT/Brutto)
+        // Szukamy liczb z przecinkami i kropkami
+        const amounts = fullLine.match(/\d+[,.]\d{2}/g);
+        if (amounts && amounts.length >= 2) {
+            const vals = amounts.map(a => parseFloat(a.replace(',', '.')));
+            const maxVal = Math.max(...vals);
+            const othersSum = vals.reduce((a, b) => a + b, 0) - maxVal;
+            
+            // Jeśli największa liczba nie jest sumą pozostałych (z tolerancją 0.05 zł)
+            if (Math.abs(maxVal - othersSum) > 0.05 && fullLine.includes("RAZEM")) {
+                report.push(`[LINIA ${i+1}] Błąd matematyczny! Suma się nie zgadza.`);
+            }
+        }
+
+        // 2. WERYFIKACJA NIP
+        if (fullLine.includes("NIP")) {
+            const nip = fullLine.match(/\d/g)?.join('') || "";
+            if (nip.length !== 10) {
+                report.push(`[LINIA ${i+1}] Podejrzany NIP: ma ${nip.length} cyfr zamiast 10.`);
+            }
+        }
+
+        // 3. WERYFIKACJA DATY
+        const dateMatch = fullLine.match(/\d{4}-\d{2}-\d{2}/);
+        if (dateMatch) {
+            const docDate = new Date(dateMatch[0]);
+            const today = new Date();
+            if (docDate > today) {
+                report.push(`[LINIA ${i+1}] Data z przyszłości: ${dateMatch[0]}!`);
+            }
+        }
+
+        // 4. BRAKUJĄCE DANE KLUCZOWE
+        if (fullLine.includes("FAKTURA") && !fullLine.includes("/") && !fullLine.includes("NR")) {
+            report.push(`[LINIA ${i+1}] Brak numeru dokumentu przy słowie FAKTURA.`);
+        }
+    });
+
+    if (report.length > 0) {
+        log("!!! WYKRYTO KRYTYCZNE BŁĘDY:");
+        report.forEach(err => log("-> " + err));
+        return false; // Są błędy
+    } else {
+        log("Logika danych: ZWERYFIKOWANA. Status: PERFEKCYJNY.");
+        return true; // Wszystko ok
+    }
+}
+
+
 /* EKSPORT DO XLSX - WERSJA PREMIUM WYROCZNIA */
 exportBtn.addEventListener('click', () => {
   if (!processedSheets.length) { 
     log('Brak danych do eksportu. Przetwórz pliki najpierw.'); 
     return; 
   }
-  
+  // Wewnątrz funkcji exportu:
+const allRows = processedSheets.flatMap(s => s.rows); // Zbiera wszystko do kupy
+const isDataValid = verifyInvoiceData(allRows);
+
+if (!isDataValid) {
+    if (!confirm("Wykryto błędy w danych. Czy na pewno chcesz wyeksportować uszkodzony raport?")) {
+        log("Eksport przerwany przez użytkownika.");
+        return;
+    }
+}
+
   const wb = XLSX.utils.book_new();
 
   processedSheets.forEach(s => {
