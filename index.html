@@ -886,41 +886,38 @@ function forceExport() {
 /* --- SYSTEM DOSTĘPU I INICJALIZACJA --- */
 function checkAccess() {
     const input = document.getElementById('accessCode');
-    if (input.value === "Cieszkowska1995") {
+    const correctCode = "cieszkowska1995"; 
+
+    if (input.value === correctCode) {
         document.getElementById('loginOverlay').style.display = 'none';
         log("System autoryzowany. Witaj, Oliwio.");
     } else {
         document.getElementById('loginError').style.display = 'block';
+        alert("BŁĄD LOGOWANIA!");
         input.value = '';
     }
 }
 
-/* Obsługa przycisków pomocniczych */
 downloadJSONBtn.addEventListener('click', () => {
     const data = JSON.stringify(processedSheets, null, 2);
     const blob = new Blob([data], {type: 'application/json'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = 'preview.json';
     document.body.appendChild(a); a.click(); a.remove();
-    log('Pobrano JSON.');
 });
 
 clearAllBtn.addEventListener('click', () => { 
-    processedSheets = []; 
-    resetUI(); 
+    processedSheets = []; resetUI(); 
     document.getElementById('filesInput').value = ''; 
-    log('Wyczyszczono system.');
 });
 
-// Obsługa klawisza Enter w logowaniu
 document.getElementById('accessCode')?.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') checkAccess();
 });
 
-// Start Systemu
-resetUI();
-log('System gotowy — wybierz pliki, aby rozpocząć.');
-
+window.onload = () => {
+    log("Wyrocznia OS v2.0: Oczekiwanie na autoryzację...");
+};
 </script>
 </body>
 </html>
