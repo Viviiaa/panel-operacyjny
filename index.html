@@ -910,14 +910,21 @@ exportBtn.addEventListener('click', () => {
 });
 
 function generateExcelFile() {
-       if (typeof saveChanges === "function") {
-               saveChanges();
-       }
+    // 1. POBIERAMY TREŚĆ PROSTO Z EDYTORA (NA ŻYWO)
+    const currentText = document.getElementById('ocrTextarea').value;
     const wb = XLSX.utils.book_new();
-    
-    processedSheets.forEach(s => {
-       const rawText = Array.isArray(s.rows) ? s.rows.join('\n') : (s.text || "");
-        const lines = rawText.split('\n');
+
+    processedSheets.forEach((s, index) => {
+        // 2. Jeśli edytujesz właśnie ten plik, bierzemy tekst z edytora
+        // Jeśli plików jest więcej, bierzemy ich treść z pamięci
+        let rawText = s.rows;
+        if (typeof currentView !== 'undefined' && currentView.fileIndex === index) {
+            rawText = currentText;
+        } else if (!rawText) {
+            rawText = s.text || "";
+        }
+
+        const lines = Array.isArray(rawText) ? rawText.join('\n').split('\n') : rawText.split('\n');
         const keywords = ["FAKTURA", "NIP", "SUMA", "RAZEM", "SPRZEDAWCA", "NABYWCA", "NETTO", "BRUTTO"];
 
         const formattedRows = lines.map(line => {
