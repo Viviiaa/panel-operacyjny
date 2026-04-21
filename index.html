@@ -297,7 +297,20 @@ let autoFix = true;
 function log(msg){ const time = new Date().toLocaleTimeString(); logEl.textContent += `[${time}] ${msg}\\n`; logEl.scrollTop = logEl.scrollHeight; }
 function setProgress(p){ progFill.style.width = Math.max(0,Math.min(100,p)) + '%'; }
 function setOcrStatus(s){ ocrStatus.textContent = 'OCR: ' + s; }
-function resetUI(){ fileList.innerHTML=''; tableEditor.innerHTML=''; sheetsList.innerHTML=''; canvasArea.innerHTML='<div class="small">Wybierz plik i stronę, aby zobaczyć podgląd</div>'; fileCount.textContent='Brak plików'; processedSheets=[]; currentView={fileIndex:null,pageIndex:0,canvas:null,imageData:null,sheetIndex:null}; setProgress(0); logEl.textContent=''; }
+function resetUI() {
+    if(typeof fileList !== 'undefined') fileList.innerHTML = '';
+    if(typeof sheetsList !== 'undefined') sheetsList.innerHTML = '';
+    
+    // Czyścimy Twój nowy, czarny edytor tekstowy
+    const ocrArea = document.getElementById('ocrTextarea');
+    if(ocrArea) ocrArea.value = '';
+    
+    // Resetujemy widok płótna (canvas)
+    const canvasArea = document.getElementById('canvasArea');
+    if(canvasArea) canvasArea.innerHTML = '<div class="small">OCZEKIWANIE NA WYBÓR OBIEKTU DO WIZUALIZACJI...</div>';
+    
+    if(typeof fileCount !== 'undefined') fileCount.textContent = 'STATUS: OCZEKIWANIE NA KOLEJKĘ';
+}
 
 /* Load Tesseract worker once */
 async function getTesseractWorker() {
