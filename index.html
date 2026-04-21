@@ -838,7 +838,8 @@ reRunOCRBtn.addEventListener('click', async ()=>{
             const nips = lineText.match(/\b\d{10}\b/g) || lineText.match(/\b\d{3}-\d{3}-\d{2}-\d{2}\b/g);
             if (!nips) {
                 // Jeśli jest słowo NIP, a nie ma 10 cyfr obok siebie
-                report.push(`[LINIA ${i+1}] Brak poprawnego NIP (wymagane 10 cyfr).`);
+                report.push(`[LINIA ${i+1}] NIP ERROR -> "${lineText.substring(0,30)}..." (Brak 10 cyfr)`);
+
             }
         }
 
@@ -853,7 +854,8 @@ reRunOCRBtn.addEventListener('click', async ()=>{
                 
                 // Tolerancja 0.11 zł na błędy zaokrągleń OCR
                 if (Math.abs(maxVal - othersSum) > 0.11) {
-                    report.push(`[LINIA ${i+1}] Błąd sumowania kwot (sprawdź Netto/VAT/Brutto).`);
+                    report.push(`[LINIA ${i+1}] MATH ERROR -> "${lineText.substring(0,40)}..." (Suma się nie zgadza)`);
+
                 }
             }
         }
@@ -866,14 +868,17 @@ reRunOCRBtn.addEventListener('click', async ()=>{
                 const parts = d.includes('-') ? d.split('-') : d.split('.');
                 const year = parseInt(parts[0] > 1000 ? parts[0] : parts[2]);
                 if (year < 2000 || year > 2030) {
-                    report.push(`[LINIA ${i+1}] Podejrzany rok w dacie: ${d}`);
+                    report.push(`[LINIA ${i+1}] DATE ERROR -> "${lineText.substring(0,30)}..." (Błędny format)`);
+
                 }
             });
         }
 
         // 4. KONTROLA WALUTY
         if (upperLine.includes("RAZEM") && !upperLine.includes("PLN") && !upperLine.includes("EUR") && !upperLine.includes("ZŁ")) {
-            report.push(`[LINIA ${i+1}] Brak oznaczenia waluty w podsumowaniu.`);
+            // Szukaj fragmentu sprawdzającego walutę
+report.push(`[LINIA ${i+1}] CURRENCY ERROR -> "${lineText.substring(0,30).trim()}..." (Brak lub błędna waluta)`);
+
         }
     });
 
