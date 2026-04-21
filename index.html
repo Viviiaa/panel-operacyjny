@@ -7,117 +7,145 @@
 
 <style>
     :root {
-        --bg-color: #020202;
-        --accent-color: #00ff41;
-        --dim-green: #003b00;
-        --border-glow: rgba(0, 255, 65, 0.2);
+        --bg-color: #050505;
+        --matrix-green: #00ff41;
+        --dark-green: #003b00;
+        --glass-bg: rgba(10, 10, 10, 0.8);
+        --glow: 0 0 15px rgba(0, 255, 65, 0.3);
     }
 
     body {
         background-color: var(--bg-color);
-        color: var(--accent-color);
-        font-family: 'Courier New', Courier, monospace;
+        background-image: 
+            radial-gradient(circle at 50% 50%, #0a1a0a 0%, #050505 100%);
+        color: var(--matrix-green);
+        font-family: 'Segoe UI', 'Courier New', monospace;
         margin: 0;
-        padding: 15px;
-        line-height: 1.4;
+        padding: 20px;
+        min-height: 100vh;
     }
 
-    /* GŁÓWNY KONTENER - przywracamy strukturę */
+    /* NOWOCZESNY KONTENER - Efekt Szkła */
     .app {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr; /* Trzy kolumny jak w oryginale */
-        gap: 20px;
-        max-width: 1600px;
+        max-width: 1400px;
         margin: 0 auto;
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--dark-green);
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 0 40px rgba(0, 0, 0, 0.5), var(--glow);
     }
 
     header {
-        grid-column: 1 / -1;
-        border-bottom: 2px solid var(--accent-color);
-        margin-bottom: 20px;
-        padding-bottom: 10px;
-        text-shadow: 0 0 5px var(--accent-color);
+        text-align: center;
+        margin-bottom: 40px;
+        border-bottom: 1px solid var(--dim-green);
     }
 
-    /* SEKCJE JAKO OSOBNE BLOKI */
-    .controls, .preview-container, .export-section, .logs-container {
-        border: 1px solid var(--dim-green);
-        background: #080808;
-        padding: 15px;
-        box-shadow: inset 0 0 10px #000, 0 0 5px var(--border-glow);
-        position: relative;
-    }
-
-    /* TYTUŁY SEKCJI */
-    h2, h3 {
-        font-size: 14px;
-        margin-top: 0;
-        background: var(--dim-green);
-        color: var(--accent-color);
-        padding: 3px 10px;
-        display: inline-block;
+    h1 {
+        font-size: 2.5em;
+        letter-spacing: 8px;
         text-transform: uppercase;
+        text-shadow: 0 0 20px var(--matrix-green);
+        margin: 0;
     }
 
-    /* PRZYCISKI - bardziej funkcyjne */
+    /* PRZYCISKI - Futurystyczny Design */
     button, .filebtn {
-        background: #000;
-        color: var(--accent-color);
-        border: 1px solid var(--accent-color);
-        padding: 8px 15px;
-        cursor: pointer;
-        font-weight: bold;
+        background: linear-gradient(45deg, #001a00, #003b00);
+        color: var(--matrix-green);
+        border: 1px solid var(--matrix-green);
+        padding: 12px 25px;
+        border-radius: 5px;
         text-transform: uppercase;
-        width: 100%;
-        margin-bottom: 5px;
-    }
-
-    button:hover {
-        background: var(--accent-color);
-        color: #000;
-        box-shadow: 0 0 15px var(--accent-color);
-    }
-
-    /* OBSZARY TEKSTOWE I LOGI */
-    #logs, textarea {
-        background: #000 !important;
-        color: #00ff41 !important;
-        border: 1px solid var(--dim-green) !important;
-        width: 100%;
-        height: 150px;
-        font-size: 12px;
-        overflow-y: auto;
-    }
-
-    /* PODGLĄD OBRAZU - żeby nie latał luźno */
-    #canvasContainer {
-        border: 1px solid var(--accent-color);
-        background: #111;
-        display: flex;
-        justify-content: center;
+        font-weight: bold;
+        letter-spacing: 2px;
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
         overflow: hidden;
     }
 
-    canvas {
-        max-width: 100%;uu
-        filter: brightness(0.8) contrast(1.2) sepia(100%) hue-rotate(70deg); /* Zielonkawy filtr na obraz */
+    button:hover {
+        background: var(--matrix-green);
+        color: #000;
+        box-shadow: 0 0 30px var(--matrix-green);
+        transform: translateY(-3px);
     }
 
-    /* LISTA PLIKÓW */
-    .file-item {
-        border-left: 3px solid var(--accent-color);
-        background: #0f0f0f;
-        margin: 5px 0;
-        padding: 5px 10px;
-        display: flex;
-        justify-content: space-between;
+    /* LOGI - Przezroczysty Terminal */
+    #logs {
+        background: rgba(0, 0, 0, 0.6) !important;
+        border: 1px solid var(--dark-green) !important;
+        border-radius: 10px;
+        padding: 15px;
+        height: 200px;
+        font-family: 'Courier New', monospace;
+        font-size: 13px;
+        box-shadow: inset 0 0 20px #000;
     }
 
-    .progress-bar { height: 10px; background: #001a00; border: 1px solid var(--accent-color); margin: 10px 0; }
-    .progress-fill { background: var(--accent-color); height: 100%; box-shadow: 0 0 10px var(--accent-color); }
+    /* SEKCJE EDYCJI I EKSPORTU */
+    .section-card {
+        background: rgba(20, 20, 20, 0.5);
+        border-radius: 10px;
+        border-left: 4px solid var(--matrix-green);
+        padding: 20px;
+        margin-top: 20px;
+    }
 
+    /* PASEK POSTĘPU - Animowany */
+    .progress-bar {
+        height: 6px;
+        background: #111;
+        border-radius: 10px;
+        overflow: hidden;
+        margin: 20px 0;
+        border: 1px solid var(--dark-green);
+    }
+
+    .progress-fill {
+        background: linear-gradient(90deg, var(--dark-green), var(--matrix-green));
+        height: 100%;
+        box-shadow: 0 0 15px var(--matrix-green);
+        transition: width 0.5s ease-in-out;
+    }
+
+    /* INPUTY I TEXTAREA */
+    textarea, input[type="password"] {
+        background: rgba(0,0,0,0.8);
+        border: 1px solid var(--dark-green);
+        border-radius: 5px;
+        color: var(--matrix-green);
+        padding: 10px;
+        outline: none;
+    }
+
+    textarea:focus { border-color: var(--matrix-green); }
+
+    /* EKRAN LOGOWANIA - Cyberpunk Style */
+    #loginOverlay {
+        background: radial-gradient(circle at center, #0a1a0a 0%, #000 100%);
+    }
+
+    #accessCode {
+        border-radius: 30px;
+        width: 300px;
+        letter-spacing: 5px;
+    }
+
+    /* Animacja mrugania dla błędów */
+    @keyframes pulse-red {
+        0% { box-shadow: 0 0 10px #f00; }
+        50% { box-shadow: 0 0 30px #f00; }
+        100% { box-shadow: 0 0 10px #f00; }
+    }
+
+    #errorOverlay h1 {
+        animation: pulse-red 1.5s infinite;
+    }
 </style>
-
 
 
 <!-- Libraries -->
@@ -792,108 +820,68 @@ reRunOCRBtn.addEventListener('click', async ()=>{
 
 
 
-/* EKSPORT DO XLSX - WERSJA PREMIUM WYROCZNIA */
+/* --- SEKCJA EKSPORTU I WERYFIKACJI --- */
 exportBtn.addEventListener('click', () => {
-  if (!processedSheets.length) { 
-    log('Brak danych do eksportu. Przetwórz pliki najpierw.'); 
-    return; 
-  }
-  // Wewnątrz funkcji exportu:
-const allRows = processedSheets.flatMap(s => s.rows); // Zbiera wszystko do kupy
-const isDataValid = verifyInvoiceData(allRows);
-
-if (!isDataValid) {
-    const errorDetails = document.getElementById('errorDetails');
-    // Pobieramy błędy, które Strażnik zapisał w logach (musimy je tam przekazać)
-    errorDetails.innerHTML = "WYKRYTO ANOMALIE:<br>" + report.join('<br>'); 
-    document.getElementById('errorOverlay').style.display = 'flex';
-    return; // Zatrzymujemy eksport
-}
-    else {
-  const wb = XLSX.utils.book_new();
-
-  processedSheets.forEach(s => {
-    // 1. PRZYGOTOWANIE DANYCH: Łączymy wyniki OCR i tniemy na linie
-    const rawText = s.rows.map(r => Array.isArray(r) ? r.join(' ') : r).join('\n');
-    const lines = rawText.split('\n');
-
-    // Słowa klucze, które system ma automatycznie pogrubić w arkuszu
-    const keywords = ["FAKTURA", "NIP", "SUMA", "RAZEM", "SPRZEDAWCA", "NABYWCA", "DATA", "NETTO", "BRUTTO", "DO ZAPŁATY"];
-
-    // 2. LOGIKA BUDOWANIA WIERSZY I STYLIZACJI
-    const formattedRows = lines
-      .map(line => {
-        const trimmedLine = line.trim();
-        if (!trimmedLine) return null; // Ignorujemy całkowicie puste linie
-
-        // Dzielimy na kolumny tam, gdzie są min. 2 spacje
-        const cells = trimmedLine.split(/\s{2,}/);
-        const isImportant = keywords.some(k => trimmedLine.toUpperCase().includes(k));
-
-        // Tworzymy obiekty Excela z inteligentną stylizacją
-        return cells.map(cell => ({
-          v: cell, // wartość komórki
-          t: 's',  // typ: tekst
-          s: {
-            font: { 
-              bold: isImportant, 
-              name: "Courier New", 
-              size: 11,
-              color: { rgb: isImportant ? "000000" : "333333" }
-            },
-            fill: isImportant ? { fgColor: { rgb: "EFEFEF" } } : null // Lekkie tło dla ważnych wierszy
-          }
-        }));
-      })
-      .filter(row => row !== null && row.length > 0);
-
-    // 3. TWORZENIE ARKUSZA
-    const ws = XLSX.utils.aoa_to_sheet(formattedRows);
-
-    // 4. UPIĘKSZACZ: Automatyczne dopasowanie szerokości kolumn (wch)
-    if (formattedRows.length > 0) {
-      const colWidths = formattedRows[0].map((_, i) => {
-        const maxLength = Math.max(...formattedRows.map(row => 
-          row[i] ? row[i].v.toString().length : 10
-        ));
-        return { wch: maxLength + 5 }; // Dodajemy margines 5 jednostek
-      });
-      ws['!cols'] = colWidths;
-    }
+    if (!processedSheets.length) { log('Brak danych do eksportu.'); return; }
     
-    // 5. BEZPIECZNA NAZWA ARKUSZA
-    let sheetName = s.name.replace(/[\[\]\*\?\/\\:]/g, '').slice(0, 31) || 'Sheet';
-    let base = sheetName, i = 1;
-    while (wb.SheetNames.includes(sheetName)) {
-      sheetName = base.slice(0, 28) + '_' + (i++);
-    }
-    
-    XLSX.utils.book_append_sheet(wb, ws, sheetName);
-  });
-
-  // 6. GENEROWANIE PLIKU I FINALNY LOG
-  XLSX.writeFile(wb, 'Wyrocznia_Raport_Premium.xlsx');
-  log('System Operacyjny: Eksport do .xlsx zakończony sukcesem (Style: Aktywne).');
-  }); // To zamyka pętlę forEach
+    // Zbieramy dane do weryfikacji
+    const allRows = processedSheets.flatMap(s => {
+        if (Array.isArray(s.rows)) return s.rows;
+        return s.text ? s.text.split('\n') : [];
     });
 
-/* Download JSON */
-downloadJSONBtn.addEventListener('click', () => {
-    const data = JSON.stringify(processedSheets, null, 2);
-    const blob = new Blob([data], {type: 'application/json'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'preview.json';
-    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-    log('Pobrano JSON z arkuszami.');
+    // Sprawdzamy błędy (Strażnik Logiki)
+    const isDataValid = (typeof verifyInvoiceData === 'function') ? verifyInvoiceData(allRows) : true;
+
+    if (!isDataValid) {
+        document.getElementById('errorOverlay').style.display = 'flex';
+        return; 
+    }
+    
+    // Jeśli wszystko OK, uruchamiamy silnik Excela
+    generateExcelFile();
 });
 
-/* Clear all */
-clearAllBtn.addEventListener('click', () => { files = []; resetUI(); filesInput.value = ''; });
+function generateExcelFile() {
+    const wb = XLSX.utils.book_new();
+    
+    processedSheets.forEach(s => {
+        const rawText = Array.isArray(s.rows) ? s.rows.join('\n') : (s.text || "");
+        const lines = rawText.split('\n');
+        const keywords = ["FAKTURA", "NIP", "SUMA", "RAZEM", "SPRZEDAWCA", "NABYWCA", "NETTO", "BRUTTO"];
 
-/* Init */
-resetUI();
-log('Gotowy — wybierz pliki, aby rozpocząć.');
+        const formattedRows = lines.map(line => {
+            const cells = line.trim().split(/\s{2,}/);
+            const isImportant = keywords.some(k => line.toUpperCase().includes(k));
+            
+            return cells.map(cell => ({
+                v: cell, 
+                t: 's',
+                s: { font: { bold: isImportant, name: "Courier New" } }
+            }));
+        }).filter(row => row.length > 0);
 
+        const ws = XLSX.utils.aoa_to_sheet(formattedRows);
+        
+        // Auto-szerokość kolumn
+        if (formattedRows.length > 0) {
+            ws['!cols'] = formattedRows.map((_, i) => ({
+                wch: Math.max(...formattedRows.map(row => row[i] ? row[i].v.toString().length : 10)) + 5
+            }));
+        }
+        
+        XLSX.utils.book_append_sheet(wb, ws, s.name.slice(0, 31));
+    });
+
+    XLSX.writeFile(wb, 'Wyrocznia_Raport_Premium.xlsx');
+    log('System: Eksport zakończony sukcesem.');
+}
+
+function forceExport() {
+    document.getElementById('errorOverlay').style.display = 'none';
+    log("OSTRZEŻENIE: Wymuszono eksport danych mimo anomalii.");
+    generateExcelFile();
+}
 
 /* --- SYSTEM DOSTĘPU I INICJALIZACJA --- */
 function checkAccess() {
@@ -906,26 +894,32 @@ function checkAccess() {
         input.value = '';
     }
 }
-    });
-function forceExport() {
-    document.getElementById('errorOverlay').style.display = 'none';
-    log("OSTRZEŻENIE: Wymuszono eksport danych mimo anomalii.");
-    if (typeof generateExcelFile === "function") {
-        generateExcelFile();
-    } else {
-        log("BŁĄD: System nie odnalazł modułu generowania pliku.");
-    }
-}
 
-// Obsługa Entera
+/* Obsługa przycisków pomocniczych */
+downloadJSONBtn.addEventListener('click', () => {
+    const data = JSON.stringify(processedSheets, null, 2);
+    const blob = new Blob([data], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'preview.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    log('Pobrano JSON.');
+});
+
+clearAllBtn.addEventListener('click', () => { 
+    processedSheets = []; 
+    resetUI(); 
+    document.getElementById('filesInput').value = ''; 
+    log('Wyczyszczono system.');
+});
+
+// Obsługa klawisza Enter w logowaniu
 document.getElementById('accessCode')?.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') checkAccess();
 });
 
-// Start systemu
+// Start Systemu
 resetUI();
-log('Gotowy — wybierz pliki, aby rozpocząć.');
-
+log('System gotowy — wybierz pliki, aby rozpocząć.');
 
 </script>
 </body>
