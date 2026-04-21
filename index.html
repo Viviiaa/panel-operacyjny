@@ -6,103 +6,117 @@
 <title>SYSTEM OPERACYJNY: WYROCZNIA</title>
 
 <style>
-        :root {
-        --neon: #00ff41;
+         :root {
+        --acc: #00ff41;
         --white: #ffffff;
-        --glass: rgba(15, 15, 15, 0.95);
+        --glass: rgba(10, 10, 10, 0.98);
         --dim: rgba(0, 255, 65, 0.15);
     }
 
     body, html {
-        margin: 0; padding: 0; background: #000; color: var(--neon);
-        font-family: 'Segoe UI', sans-serif; min-height: 100vh;
+        margin: 0; padding: 0; background: #000; color: var(--acc);
+        font-family: 'Segoe UI', sans-serif; min-height: 100vh; overflow-x: hidden;
     }
 
-    /* --- TWOJE IDEALNE LOGOWANIE (NIETYKALNE) --- */
+    /* --- TWOJE IDEALNE LOGOWANIE (LINIE 32-71 - PRZYWRÓCONE 1:1) --- */
     #loginOverlay {
         position: fixed; inset: 0; background: #000; z-index: 10000;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
     }
     #loginOverlay::before {
-        content: "Ξ"; font-size: 80px; color: var(--white);
-        text-shadow: 0 0 40px var(--neon); margin-bottom: 30px;
-        animation: pulse 4s infinite ease-in-out;
+        content: "Ξ"; font-size: 110px; color: var(--white);
+        text-shadow: 0 0 50px var(--acc); margin-bottom: 50px;
+        animation: breath-gate 4s infinite ease-in-out;
     }
+    #loginOverlay::after {
+        content: ""; position: absolute; width: 280px; height: 280px;
+        border: 2px solid var(--acc); border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+        animation: rotate-portal 10s infinite linear; box-shadow: inset 0 0 40px var(--acc); opacity: 0.3;
+    }
+    @keyframes rotate-portal { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes breath-gate { 0%, 100% { transform: scale(1); opacity: 0.4; } 50% { transform: scale(1.05); opacity: 1; } }
+
     #accessCode {
-        background: transparent; border: none; border-bottom: 2px solid var(--white);
-        color: var(--white); font-size: 2.5rem; text-align: center; width: 80%; max-width: 400px;
-        outline: none; letter-spacing: 10px; position: relative; z-index: 10001;
+        background: transparent; border: none; border-bottom: 3px solid var(--white);
+        color: var(--white); font-size: 4rem; text-align: center; width: 450px;
+        outline: none; letter-spacing: 15px; position: relative; z-index: 10001;
     }
-    @keyframes pulse { 0%, 100% { opacity: 0.5; transform: scale(1); } 50% { opacity: 1; transform: scale(1.05); } }
 
-    /* --- SYSTEM: RESPONSYWNY I LUKSUSOWY --- */
+    /* --- SYSTEM: POTĘŻNY UKŁAD PC (TRZY KOLUMNY) --- */
     .app {
-        max-width: 1400px; margin: 0 auto; padding: 20px;
-        background: var(--glass); min-height: 100vh;
-        box-shadow: 0 0 100px #000; display: none;
+        max-width: 1800px; /* Szeroki kokpit */
+        margin: 40px auto;
+        padding: 50px;
+        background: var(--glass);
+        backdrop-filter: blur(60px);
+        border: 1px solid var(--dim);
+        border-radius: 40px;
+        box-shadow: 0 0 100px #000;
+        display: none; /* Pokażemy po logowaniu */
+        position: relative;
     }
 
-    /* NOWOCZESNE LOGO SYSTEMOWE (WIDOCZNE!) */
-    header {
-        display: flex; flex-direction: column; align-items: center;
-        padding: 30px 0; border-bottom: 1px solid var(--dim); margin-bottom: 30px;
+    /* LOGO SYSTEMOWE Ξ W ROGU */
+    .app::after {
+        content: "Ξ"; position: absolute; top: 40px; right: 50px;
+        font-size: 30px; color: var(--white); text-shadow: 0 0 20px var(--acc); opacity: 0.5;
     }
-    header::before {
-        content: "Ξ"; font-size: 40px; color: var(--white);
-        text-shadow: 0 0 20px var(--neon); margin-bottom: 10px;
-    }
-    header h1 { font-size: 1rem; letter-spacing: 5px; text-transform: uppercase; color: var(--white); margin: 0; }
 
-    /* UKŁAD: NA PC 3 KOLUMNY, NA TELEFONIE 1 KOLUMNA */
+    /* UKŁAD TRZYKOLUMNOWY - SZTYWNY I PEWNY */
     .layout {
-        display: flex; flex-direction: column; gap: 20px;
+        display: grid;
+        grid-template-columns: 400px 1fr 400px;
+        gap: 30px;
+        width: 100%;
     }
 
-    @media (min-width: 1024px) {
-        .layout { display: grid; grid-template-columns: 350px 1fr 350px; gap: 25px; }
-        .app { margin: 40px auto; border-radius: 40px; min-height: auto; border: 1px solid var(--dim); }
-    }
-
-    /* PANELE - SZKLANE KARTY */
-    .panel, #leftPanel, #centerPanel, #rightPanel {
-        background: rgba(255, 255, 255, 0.03) !important;
+    /* PANELE - SZKLANE KOMORY */
+    .panel, #leftPanel, #centerPanel, #rightPanel, .section-card {
+        background: rgba(0, 0, 0, 0.7) !important;
         border: 1px solid var(--dim) !important;
-        border-radius: 25px !important; padding: 25px !important;
-        box-shadow: inset 0 0 20px #000;
-        width: 100%; box-sizing: border-box; /* To naprawia "uciekanie" do lewej */
+        border-radius: 25px !important;
+        padding: 30px !important;
+        box-shadow: inset 0 0 30px #000;
+        transition: 0.4s;
     }
+    .panel:hover { border-color: var(--acc) !important; transform: translateY(-5px); }
 
-    /* BIAŁE NAGŁÓWKI */
-    strong, h2 {
+    /* BIAŁE NAGŁÓWKI - TWOJA CZYTELNOŚĆ */
+    strong, h2, .small strong {
         color: var(--white) !important; text-transform: uppercase;
-        letter-spacing: 3px; font-size: 0.7rem; border-left: 3px solid var(--neon);
-        padding-left: 15px; margin-bottom: 20px; display: block;
+        letter-spacing: 6px; font-size: 0.8rem; border-left: 4px solid var(--acc);
+        padding-left: 15px; margin-bottom: 25px; display: block;
     }
 
-    /* PRZYCISKI - WIDOCZNE I KLIKALNE (IMPORT I EXPORT) */
-    .controls { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+    /* PRZYCISKI - W TYM IMPORT PLIKÓW (WRESZCIE WIDOCZNY) */
+    .controls { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; }
     
     button, .btn, .filebtn {
-        background: var(--neon) !important; color: #000 !important;
-        border: none !important; padding: 18px; border-radius: 15px !important;
-        font-weight: 900; text-transform: uppercase; letter-spacing: 2px;
-        font-size: 0.7rem; cursor: pointer; text-align: center;
-        width: 100%; display: block !important;
+        background: transparent !important;
+        border: 1px solid var(--acc) !important;
+        color: var(--acc) !important;
+        padding: 15px 30px !important;
+        border-radius: 50px !important;
+        font-weight: bold; text-transform: uppercase;
+        font-size: 0.75rem; cursor: pointer; transition: 0.3s;
+        display: inline-block !important; text-align: center;
+        text-decoration: none;
     }
-    button:active, .filebtn:active { transform: scale(0.98); background: var(--white) !important; }
-
-    /* EDYTOR I LOGI - DOPASOWANE DO EKRANU */
-    #log, #ocrTextarea {
-        background: #000 !important; border: 1px solid #222 !important;
-        color: var(--neon) !important; font-family: monospace;
-        padding: 15px; border-radius: 15px; width: 100%; box-sizing: border-box;
-        font-size: 14px; line-height: 1.5;
+    button:hover, .filebtn:hover {
+        background: var(--acc) !important; color: #000 !important;
+        box-shadow: 0 0 30px var(--acc);
     }
-    #ocrTextarea { height: 350px; }
-    #log { height: 200px; font-size: 11px; }
 
-    /* ANIMACJA SKANOWANIA (DLA BAJERU) */
-    .panel:hover { border-color: var(--neon); box-shadow: 0 0 20px rgba(0, 255, 65, 0.1); }
+    /* EDYTOR I LOGI */
+    #log, #logs, #ocrTextarea {
+        background: #000 !important; border: 1px solid #111 !important;
+        color: var(--acc) !important; font-family: monospace;
+        padding: 25px; border-radius: 20px; line-height: 1.7; width: 100%; box-sizing: border-box;
+    }
+    #ocrTextarea { height: 550px; border-left: 4px solid var(--acc) !important; }
+
+    /* MATRIX TŁO */
+    #matrix-bg { position: fixed; inset: 0; z-index: -1; opacity: 0.12; }
     }
 
 </style>
