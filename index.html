@@ -846,8 +846,7 @@ async function generateExcelFile() {
                 model: "llama3-8b-8192",
                 messages: [{
                     role: "user",
-                    content: "Jesteś asystentem biurowym. Otrzymujesz tekst z OCR (różne dokumenty). Zidentyfikuj co to jest i uformuj dane w idealną tabelę CSV (użyj średnika ; jako separatora). Zwróć TYLKO wiersze tabeli z nagłówkami. Tekst: " + currentText
-                }]
+                    content: `Działaj jako uniwersalny analityk dokumentów. Przeanalizuj treść i zidentyfikuj najważniejsze dane (np. strony umowy, daty, kwoty, przedmioty, numery seryjne). Stwórz tabelę Excel (format CSV), gdzie pierwszy wiersz to nagłówki dopasowane do typu dokumentu. Użyj średnika (;) jako JEDYNEGO separatora kolumn. Zwróć TYLKO I WYŁĄCZNIE surowe dane wiersz po wierszu. Absolutny zakaz pisania wstępów typu Oto tabela. Tylko czysty tekst do Excela. TEKST: ${currentText}`
             })
         });
 
