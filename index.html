@@ -954,14 +954,24 @@ function forceExport() {
 /* --- SYSTEM DOSTĘPU I INICJALIZACJA --- */
 function checkAccess() {
     const input = document.getElementById('accessCode');
-    const correctCode = "cieszkowska1995"; 
+    const errorMsg = document.getElementById('loginError');
+    const correctCode = "Cieszkowska1995"; 
 
     if (input.value === correctCode) {
         document.getElementById('loginOverlay').style.display = 'none';
         log("System autoryzowany. Witaj, Oliwio.");
     } else {
-        document.getElementById('loginError').style.display = 'block';
+        // Tu dzieje się magia błędu
+        if (errorMsg) errorMsg.style.display = 'block';
+        input.style.borderColor = "#ff0000"; // Pole robi się czerwone
+        input.style.boxShadow = "0 0 20px #ff0000";
         input.value = '';
+        
+        // Po 3 sekundach usuwamy czerwone świecenie, ale napis zostaje
+        setTimeout(() => {
+            input.style.borderColor = "var(--acc)";
+            input.style.boxShadow = "var(--glow)";
+        }, 3000);
     }
 }
 
@@ -983,6 +993,10 @@ document.getElementById('accessCode')?.addEventListener('keypress', (e) => {
 });
 
 window.onload = () => {
+      if (typeof drawMatrix === "function") {
+        setInterval(drawMatrix, 35);
+        console.log("MATRIX ENGINE: ONLINE");
+    }
     log("Wyrocznia OS v2.0: Oczekiwanie na autoryzację...");
 };
 </script>
