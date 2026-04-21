@@ -167,9 +167,8 @@ function resetUI(){ fileList.innerHTML=''; tableEditor.innerHTML=''; sheetsList.
 async function getTesseractWorker() {
   if (tesseractWorker) return tesseractWorker;
 
-  updateStatus("Inicjalizacja Tesseract v4...");
+  log("Inicjalizacja Tesseract...");
   
-  // W wersji 4 tworzymy workera tak:
   tesseractWorker = await Tesseract.createWorker({
     logger: m => {
       if (m.status === 'recognizing text' && m.progress) {
@@ -179,7 +178,6 @@ async function getTesseractWorker() {
     }
   });
 
-  // W v4 musimy wywołać te 3 funkcje po kolei:
   await tesseractWorker.load();
   await tesseractWorker.loadLanguage('pol');
   await tesseractWorker.initialize('pol');
@@ -188,7 +186,7 @@ async function getTesseractWorker() {
     tessedit_pageseg_mode: '1'
   });
 
-  updateStatus("Tesseract gotowy.");
+  log("Tesseract gotowy.");
   return tesseractWorker;
 }
 
