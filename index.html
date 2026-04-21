@@ -93,6 +93,39 @@
 
 </head>
 <body>
+
+    <canvas id="matrix-bg"></canvas>
+
+<div id="loginOverlay">
+    <div class="oracle-avatar"></div>
+    <h1>WYROCZNIA // SYSTEM DOSTĘPU</h1>
+    <input type="password" id="accessCode" placeholder="••••••••">
+    <button onclick="checkAccess()" style="width: 250px; margin-top: 30px;">ZALOGUJ DO TERMINALA</button>
+</div>
+
+<div class="app">
+    <header>
+        <div class="oracle-avatar"></div>
+        <h1>WYROCZNIA // DATA CORE</h1>
+        <p style="opacity: 0.6; letter-spacing: 2px;">LOGIC-BASED DATA EXTRACTION & ANALYSIS</p>
+    </header>
+
+    <div class="main-grid">
+        <div class="panel">
+            <strong>KONSOLA OPERACYJNA</strong>
+            <input type="file" id="f" multiple style="display:none" onchange="handleFiles(this.files)">
+            <button onclick="document.getElementById('f').click()" style="margin: 20px 0;">+ IMPORTUJ DATASET</button>
+            <div id="logs"></div>
+            <button onclick="generateExcel()" style="margin-top: 20px; background: var(--acc); color: #000;">KOMPILUJ RAPORT .XLSX</button>
+        </div>
+        <div class="panel">
+            <strong>EDYCJA STRUKTURALNA // MANUAL OVERRIDE</strong>
+            <textarea id="ocrTextarea" placeholder="Oczekiwanie na strumień danych..."></textarea>
+            <button onclick="saveChanges()" style="margin-top: 15px;">ZATWIERDŹ ZMIANY</button>
+        </div>
+    </div>
+</div>
+    
   <!-- EKRAN LOGOWANIA -->
 <div id="loginOverlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#000; color:#0f0; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:9999; font-family:monospace;">
     <h1 style="color:#0f0; border-bottom: 2px solid #0f0; margin-bottom: 20px;">SYSTEM OPERACYJNY: WYROCZNIA</h1>
@@ -194,6 +227,67 @@
 </div>
 
 <script>
+
+    // --- ANIMACJA MATRIX ---
+    const canvas = document.getElementById('matrix-bg');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const chars = "Ξ0123456789ABCDEFWYROCZNIA";
+    const fontSize = 14;
+    const columns = canvas.width / fontSize;
+    const drops = Array(Math.floor(columns)).fill(1);
+
+    function drawMatrix() {
+        ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#00ff41";
+        ctx.font = fontSize + "px monospace";
+        for (let i = 0; i < drops.length; i++) {
+            const text = chars[Math.floor(Math.random() * chars.length)];
+            ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+            if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+            drops[i]++;
+        }
+    }
+    setInterval(drawMatrix, 35);
+
+    // --- LOGIKA SYSTEMU ---
+    let processedSheets = [];
+    const log = (m) => { const l = document.getElementById('logs'); l.innerHTML += `[${new Date().toLocaleTimeString()}] ${m}<br>`; l.scrollTop = l.scrollHeight; };
+
+    function checkAccess() {
+        if (document.getElementById('accessCode').value === "Cieszkowska1995") {
+            document.getElementById('loginOverlay').style.display = 'none';
+            log("Autoryzacja pomyślna. System Operacyjny gotowy.");
+        }
+    }
+
+    async function handleFiles(files) {
+        processedSheets = [];
+        for (let file of files) {
+            log(`Analiza obiektu: ${file.name}...`);
+            const worker = await Tesseract.createWorker('pol');
+            const { data: { text } } = await worker.recognize(file);
+            document.getElementById('ocrTextarea').value = text;
+            processedSheets.push({ name: file.name, text: text });
+            await worker.terminate();
+        }
+        log("Ekstrakcja zakończona sukcesem.");
+    }
+
+    function generateExcel() {
+        if (!processedSheets.length) return log("BŁĄD: Brak danych do kompilacji.");
+        const wb = XLSX.utils.book_new();
+        processedSheets.forEach(p => {
+            const rows = p.text.split('\n').map(l => l.trim().split(/\s{2,}/));
+            const ws = XLSX.utils.aoa_to_sheet(rows);
+            XLSX.utils.book_append_sheet(wb, ws, p.name.slice(0,30));
+        });
+        XLSX.writeFile(wb, "Raport_Wyroczni_Premium.xlsx");
+        log("Raport wygenerowany.");
+    }
+    
 /* Globals */
 const filesInput = document.getElementById('files');
 const fileCount = document.getElementById('fileCount');
