@@ -865,7 +865,7 @@ async function generateExcelFile() {
         if (!response.ok) throw new Error("API nie odpowiada: " + response.status);
 
         const data = await response.json();
-        const aiResult = data.choices[0].message.content.replace(/```csv|```/gi, "").trim();
+        const aiResult = data.choices[0].message.content;
 
         // Filtr "antysrakowy" - usuwa śmieci od AI
         aiResult = aiResult.replace(/```csv|```|Oto tabela:|Oto dane:/gi, "").trim();
@@ -883,7 +883,7 @@ async function generateExcelFile() {
         // Luksusowe dopasowanie szerokości kolumn
         if (formattedRows.length > 0) {
             ws['!cols'] = formattedRows[0].map((_, i) => ({
-                wch: Math.max(...formattedRows.map(row => row[i] ? row[i].v.toString().length : 15)) + 5
+                 wch: Math.max(...formattedRows.map(row => row[i] ? row[i].v.toString().length : 15)) + 5
             }));
         }
 
@@ -896,20 +896,6 @@ async function generateExcelFile() {
     } catch (error) {
         log("CRITICAL_ERROR: " + error.message);
         console.error("Szczegóły:", error);
-    }
-}
-
-        // Tu wstawiamy ustawianie szerokości kolumn (Twoja funkcja z linii 886)
-        if (formattedRows.length > 0) {
-            ws['!cols'] = formattedRows[0].map((_, i) => ({
-                wch: Math.max(...formattedRows.map(row => row[i] ? row[i].v.toString().length : 10)) + 5
-            }));
-        }
-
-        XLSX.writeFile(wb, 'Wyrocznia_Raport_Premium.xlsx');
-        log('System: Eksport AI zakończony sukcesem.');
-    } catch (error) {
-        log("BŁĄD_AI: Nie udało się połączyć z mózgiem.");
     }
 }
 
