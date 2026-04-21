@@ -6,121 +6,144 @@
 <title>SYSTEM OPERACYJNY: WYROCZNIA</title>
 
 <style>
-        :root {
-        --neon: #00ff41;
+         :root {
+        --acc: #00ff41;
         --white: #ffffff;
-        --glass: rgba(10, 10, 10, 0.96);
-        --panel-bg: rgba(20, 20, 20, 0.6);
-        --border: rgba(0, 255, 65, 0.15);
-        --glow: 0 0 30px rgba(0, 255, 65, 0.2);
+        --bg: #000000;
+        /* Nowy, lżejszy efekt szkła */
+        --glass: rgba(15, 15, 15, 0.9);
+        --border: rgba(255, 255, 255, 0.1);
     }
 
     body, html {
-        margin: 0; padding: 0; background: #000; color: var(--neon);
-        font-family: 'Inter', 'Segoe UI', sans-serif; overflow-x: hidden;
+        margin: 0; padding: 0;
+        background: var(--bg);
+        color: var(--white);
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        min-height: 100vh;
+        overflow-x: hidden;
     }
 
-    /* --- TWOJE IDEALNE LOGOWANIE (ZABLOKOWANE) --- */
+    /* --- LOGOWANIE: ABSOLUTNA PRECYZJA (Naprawione klikanie) --- */
     #loginOverlay {
-        position: fixed; inset: 0; background: #000; z-index: 10000;
+        position: fixed; inset: 0; background: var(--bg); z-index: 10000;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
+        /* Usunięto wszystkie transformacje psujące celowanie */
     }
+
+    /* PORTAL ENERGII Ξ */
     #loginOverlay::before {
-        content: "Ξ"; font-size: 110px; color: var(--white);
-        text-shadow: 0 0 40px var(--neon); margin-bottom: 50px;
-        animation: breath-gate 4s infinite ease-in-out;
+        content: "Ξ"; font-size: 120px; color: var(--white);
+        text-shadow: 0 0 50px var(--acc); margin-bottom: 40px;
+        animation: pulse 4s infinite ease-in-out;
     }
-    #loginOverlay::after {
-        content: ""; position: absolute; width: 300px; height: 300px;
-        border: 2px solid var(--neon); border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
-        animation: rotate-portal 8s infinite linear; box-shadow: inset 0 0 50px var(--neon); opacity: 0.4;
-    }
+
+    /* POLE HASŁA - 1:1 REAKCJA NA MYSZKĘ */
     #accessCode {
-        background: transparent; border: none; border-bottom: 3px solid var(--white);
-        color: var(--white); font-size: 3.5rem; text-align: center; width: 450px; outline: none; letter-spacing: 15px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--white);
+        border-radius: 12px;
+        color: var(--white);
+        font-size: 3rem;
+        text-align: center;
+        width: 500px;
+        height: 100px;
+        padding: 0 20px;
+        outline: none;
+        letter-spacing: 15px;
+        transition: 0.3s;
+        /* ZERO animacji przesuwających - teraz trafisz za każdym razem */
     }
-    @keyframes rotate-portal { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-    @keyframes breath-gate { 0%, 100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.05); opacity: 1; } }
+    #accessCode:focus { border-color: var(--acc); box-shadow: 0 0 30px rgba(0,255,65,0.2); }
 
-    /* --- SYSTEM: NOWOCZESNA ARCHITEKTURA --- */
+    /* --- SYSTEM: NOWY PORZĄDEK (MODERN DASHBOARD) --- */
     .app {
-        max-width: 1750px; margin: 30px auto; padding: 50px;
-        background: var(--glass); backdrop-filter: blur(60px);
-        border: 1px solid var(--border); border-radius: 45px;
-        box-shadow: 0 80px 150px rgba(0,0,0,1); position: relative;
+        max-width: 1600px;
+        margin: 50px auto;
+        padding: 60px;
+        background: var(--glass);
+        backdrop-filter: blur(80px);
+        border: 1px solid var(--border);
+        border-radius: 50px;
+        box-shadow: 0 100px 200px rgba(0,0,0,0.8);
+        display: none;
     }
 
-    /* MODERNE LOGO W ROGU SYSTEMU */
-    .app::after {
-        content: "Ξ"; position: absolute; top: 40px; right: 60px;
-        font-size: 30px; color: var(--white); opacity: 0.8;
-        text-shadow: 0 0 15px var(--neon); animation: logo-float 5s infinite ease-in-out;
+    /* NOWOCZESNY UKŁAD PANELOWY */
+    .layout {
+        display: grid;
+        grid-template-columns: 420px 1fr 420px;
+        gap: 35px;
+        align-items: start;
     }
-    @keyframes logo-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 
-    /* DYNAMICZNY SKANER (LATAJĄCY PASEK) */
-    .app::before {
-        content: ""; position: absolute; top: 0; left: -100%; width: 100%; height: 2px;
-        background: linear-gradient(90deg, transparent, var(--neon), transparent);
-        animation: scan-modern 6s linear infinite; z-index: 10;
-    }
-    @keyframes scan-modern { 0% { left: -100%; } 100% { left: 100%; } }
-
-    /* PANELE - NOWOCZESNE KARTY */
-    .panel, #leftPanel, #centerPanel, #rightPanel, .section-card {
-        background: var(--panel-bg) !important;
+    /* PANELE - "FLOAT CARDS" */
+    .panel, #leftPanel, #centerPanel, #rightPanel {
+        background: rgba(255, 255, 255, 0.02) !important;
         border: 1px solid var(--border) !important;
-        border-radius: 25px !important; padding: 35px !important;
-        margin-bottom: 25px; transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-        overflow: hidden;
+        border-radius: 30px !important;
+        padding: 40px !important;
+        transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
     }
     .panel:hover {
-        border-color: rgba(0, 255, 65, 0.4) !important;
-        background: rgba(30, 30, 30, 0.8) !important;
-        transform: translateY(-8px) scale(1.02);
-        box-shadow: 0 20px 50px rgba(0,255,65,0.05);
+        background: rgba(255, 255, 255, 0.05) !important;
+        border-color: var(--acc) !important;
+        transform: translateY(-10px);
     }
 
-    /* BIAŁE NAGŁÓWKI - SUPREME CLEAN STYLE */
-    strong, h2, .small strong, .panel-title {
-        color: var(--white) !important; text-transform: uppercase !important;
-        font-weight: 800 !important; letter-spacing: 5px !important; font-size: 0.75rem !important;
-        border-left: 5px solid var(--neon); padding-left: 20px;
-        margin-bottom: 30px; display: block; opacity: 0.95;
+    /* NAGŁÓWKI - TYPOGRAFIA PREMIUM (BIAŁA) */
+    strong, h2, .small strong {
+        color: var(--white) !important;
+        text-transform: uppercase;
+        font-weight: 900;
+        letter-spacing: 8px;
+        font-size: 0.7rem;
+        margin-bottom: 30px;
+        display: block;
+        opacity: 0.6;
     }
 
-    /* PRZYCISKI - NOWOCZESNE CAPSULES */
+    /* PRZYCISKI - MINIMALISTYCZNE CAPSULES */
     button, .btn, .filebtn {
-        background: rgba(0, 255, 65, 0.03) !important;
-        border: 1px solid var(--neon) !important;
-        color: var(--neon) !important; padding: 16px 35px !important;
-        border-radius: 100px !important; font-weight: 900;
-        text-transform: uppercase; letter-spacing: 3px; font-size: 0.7rem;
-        cursor: pointer; transition: 0.4s all;
+        background: var(--white) !important;
+        color: var(--bg) !important;
+        border: none !important;
+        padding: 20px 40px !important;
+        border-radius: 100px !important;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 4px;
+        font-size: 0.65rem;
+        cursor: pointer;
+        transition: 0.4s;
     }
     button:hover, .filebtn:hover {
-        background: var(--neon) !important; color: #000 !important;
-        box-shadow: 0 0 40px var(--neon); transform: scale(1.05);
+        background: var(--acc) !important;
+        box-shadow: 0 20px 40px rgba(0, 255, 65, 0.3);
+        transform: scale(1.05);
     }
 
-    /* TERMINALE - GŁĘBIA SYSTEMOWA */
+    /* EDYTOR I LOGI - CZARNE KRYSZTAŁY */
     #log, #logs, #ocrTextarea {
-        background: rgba(0,0,0,0.85) !important;
-        border: 1px solid #1a1a1a !important;
-        color: var(--neon) !important; font-family: 'JetBrains Mono', monospace;
-        font-size: 14px; line-height: 1.8; padding: 30px; border-radius: 20px;
-        box-shadow: inset 0 0 20px #000; transition: 0.3s;
+        background: rgba(0, 0, 0, 0.9) !important;
+        border: 1px solid var(--border) !important;
+        color: var(--acc) !important;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 15px;
+        line-height: 1.8;
+        padding: 30px;
+        border-radius: 25px;
     }
-    #ocrTextarea:focus { border-left: 5px solid var(--neon) !important; outline: none; }
+    #ocrTextarea { height: 550px; border-left: 6px solid var(--acc) !important; }
 
-    /* DEKORACJE: PULSUJĄCE STATUSY */
-    .pill, .chip {
-        background: #000; border: 1px solid var(--border); color: #fff;
-        padding: 6px 16px; border-radius: 8px; font-size: 10px;
-        text-transform: uppercase; animation: status-pulse 2s infinite;
+    /* LOGO SYSTEMOWE Ξ */
+    .system-logo {
+        position: fixed; top: 40px; left: 40px;
+        font-size: 24px; font-weight: bold; letter-spacing: 10px;
+        opacity: 0.3;
     }
-    @keyframes status-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+    @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; transform: scale(1.05); } }
     }
 
 </style>
