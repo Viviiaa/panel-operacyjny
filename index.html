@@ -137,6 +137,19 @@
     <p id="loginError" style="color:red; margin-top:10px; display:none;">DOSTĘP ZABLOKOWANY</p>
 </div>
 
+    <!-- SYSTEMOWY ALERT BŁĘDU -->
+<div id="errorOverlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(150,0,0,0.9); color:#fff; display:none; flex-direction:column; align-items:center; justify-content:center; z-index:10000; font-family:monospace; text-align:center; padding: 20px;">
+    <h1 style="font-size: 50px; text-shadow: 0 0 20px #fff; margin:0;">!!! NARUSZENIE LOGIKI DANYCH !!!</h1>
+    <div id="errorDetails" style="background:#000; color:#ff0000; padding:20px; border:3px dashed #fff; margin:20px 0; max-width:80%; font-size:18px; text-align:left;">
+        <!-- Tu wskoczą błędy z Twojego Strażnika -->
+    </div>
+    <div style="display:flex; gap:20px;">
+        <button onclick="document.getElementById('errorOverlay').style.display='none'" style="background:#fff; color:#900; border:none; padding:15px 30px; font-weight:bold; cursor:pointer;">POWRÓT DO EDYCJI</button>
+        <button onclick="forceExport()" style="background:transparent; border:2px solid #fff; color:#fff; padding:15px 30px; cursor:pointer;">EKSPORTUJ MIMO BŁĘDÓW</button>
+    </div>
+</div>
+
+
 <div class="app" role="main">
   <header>
     <div class="logo">X</div>
@@ -716,58 +729,67 @@ reRunOCRBtn.addEventListener('click', async ()=>{
 
     function verifyInvoiceData(rows) {
     let report = [];
-    log("SYSTEM: Rozpoczynam głęboką weryfikację logiki...");
+    log("SYSTEM: Głęboka analiza logiczna w toku...");
 
     rows.forEach((row, i) => {
-        const fullLine = row.join(' ').toUpperCase();
+        // Łączymy wiersz w jeden tekst do analizy
+        const lineText = row.join(' ').trim();
+        const upperLine = lineText.toUpperCase();
         
-        // 1. WERYFIKACJA MATEMATYKI (Netto/VAT/Brutto)
-        // Szukamy liczb z przecinkami i kropkami
-        const amounts = fullLine.match(/\d+[,.]\d{2}/g);
-        if (amounts && amounts.length >= 2) {
-            const vals = amounts.map(a => parseFloat(a.replace(',', '.')));
-            const maxVal = Math.max(...vals);
-            const othersSum = vals.reduce((a, b) => a + b, 0) - maxVal;
-            
-            // Jeśli największa liczba nie jest sumą pozostałych (z tolerancją 0.05 zł)
-            if (Math.abs(maxVal - othersSum) > 0.05 && fullLine.includes("RAZEM")) {
-                report.push(`[LINIA ${i+1}] Błąd matematyczny! Suma się nie zgadza.`);
+        // 1. INTELIGENTNY NIP (Szuka grup dokładnie 10 cyfr)
+        if (upperLine.includes("NIP")) {
+            const nips = lineText.match(/\b\d{10}\b/g) || lineText.match(/\b\d{3}-\d{3}-\d{2}-\d{2}\b/g);
+            if (!nips) {
+                // Jeśli jest słowo NIP, a nie ma 10 cyfr obok siebie
+                report.push(`[LINIA ${i+1}] Brak poprawnego NIP (wymagane 10 cyfr).`);
             }
         }
 
-        // 2. WERYFIKACJA NIP
-        if (fullLine.includes("NIP")) {
-            const nip = fullLine.match(/\d/g)?.join('') || "";
-            if (nip.length !== 10) {
-                report.push(`[LINIA ${i+1}] Podejrzany NIP: ma ${nip.length} cyfr zamiast 10.`);
+        // 2. MATEMATYKA (Tylko w liniach podsumowań: RAZEM, SUMA, BRUTTO)
+        const summaryKeywords = ["RAZEM", "SUMA", "ZAPŁATY", "BRUTTO", "TOTAL"];
+        if (summaryKeywords.some(k => upperLine.includes(k))) {
+            const amounts = lineText.match(/\d+[,.]\d{2}/g);
+            if (amounts && amounts.length >= 2) {
+                const vals = amounts.map(a => parseFloat(a.replace(',', '.')));
+                const maxVal = Math.max(...vals);
+                const othersSum = vals.reduce((a, b) => a + b, 0) - maxVal;
+                
+                // Tolerancja 0.11 zł na błędy zaokrągleń OCR
+                if (Math.abs(maxVal - othersSum) > 0.11) {
+                    report.push(`[LINIA ${i+1}] Błąd sumowania kwot (sprawdź Netto/VAT/Brutto).`);
+                }
             }
         }
 
-        // 3. WERYFIKACJA DATY
-        const dateMatch = fullLine.match(/\d{4}-\d{2}-\d{2}/);
-        if (dateMatch) {
-            const docDate = new Date(dateMatch[0]);
-            const today = new Date();
-            if (docDate > today) {
-                report.push(`[LINIA ${i+1}] Data z przyszłości: ${dateMatch[0]}!`);
-            }
+        // 3. WERYFIKACJA DAT (Format RRRR-MM-DD lub DD.MM.RRRR)
+        const datePattern = /\b\d{4}-\d{2}-\d{2}\b|\b\d{2}\.\d{2}\.\d{4}\b/g;
+        const dates = lineText.match(datePattern);
+        if (dates) {
+            dates.forEach(d => {
+                const parts = d.includes('-') ? d.split('-') : d.split('.');
+                const year = parseInt(parts[0] > 1000 ? parts[0] : parts[2]);
+                if (year < 2000 || year > 2030) {
+                    report.push(`[LINIA ${i+1}] Podejrzany rok w dacie: ${d}`);
+                }
+            });
         }
 
-        // 4. BRAKUJĄCE DANE KLUCZOWE
-        if (fullLine.includes("FAKTURA") && !fullLine.includes("/") && !fullLine.includes("NR")) {
-            report.push(`[LINIA ${i+1}] Brak numeru dokumentu przy słowie FAKTURA.`);
+        // 4. KONTROLA WALUTY
+        if (upperLine.includes("RAZEM") && !upperLine.includes("PLN") && !upperLine.includes("EUR") && !upperLine.includes("ZŁ")) {
+            report.push(`[LINIA ${i+1}] Brak oznaczenia waluty w podsumowaniu.`);
         }
     });
 
     if (report.length > 0) {
-        log("!!! WYKRYTO KRYTYCZNE BŁĘDY:");
+        log("!!! WYKRYTO ANOMALIE LOGICZNE:");
         report.forEach(err => log("-> " + err));
-        return false; // Są błędy
+        return false;
     } else {
-        log("Logika danych: ZWERYFIKOWANA. Status: PERFEKCYJNY.");
-        return true; // Wszystko ok
+        log("Status: LOGIKA ZWERYFIKOWANA. Dane są spójne.");
+        return true;
     }
 }
+
 
 
 /* EKSPORT DO XLSX - WERSJA PREMIUM WYROCZNIA */
@@ -781,11 +803,14 @@ const allRows = processedSheets.flatMap(s => s.rows); // Zbiera wszystko do kupy
 const isDataValid = verifyInvoiceData(allRows);
 
 if (!isDataValid) {
-    if (!confirm("Wykryto błędy w danych. Czy na pewno chcesz wyeksportować uszkodzony raport?")) {
-        log("Eksport przerwany przez użytkownika.");
-        return;
-    }
+    const errorDetails = document.getElementById('errorDetails');
+    // Pobieramy błędy, które Strażnik zapisał w logach (musimy je tam przekazać)
+    errorDetails.innerHTML = "WYKRYTO ANOMALIE:<br>" + report.join('<br>'); 
+    document.getElementById('errorOverlay').style.display = 'flex';
+    return; // Zatrzymujemy eksport
 }
+
+
 
   const wb = XLSX.utils.book_new();
 
@@ -892,6 +917,10 @@ document.getElementById('accessCode').addEventListener('keypress', function (e) 
     }
 });
 
+    function forceExport() {
+    document.getElementById('errorOverlay').style.display = 'none';
+    log("OSTRZEŻENIE: Użytkownik wymusił eksport danych mimo anomalii.");
+    
 </script>
 </body>
 </html>
