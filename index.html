@@ -8,185 +8,98 @@
 <style>
    :root {
         --neon: #00ff41;
-        --neon-glow: rgba(0, 255, 65, 0.4);
-        --deep-black: #020202;
-        --glass-bg: rgba(5, 5, 5, 0.95);
         --white: #ffffff;
-        --gold-hint: rgba(255, 255, 255, 0.05);
+        --glass: rgba(5, 5, 5, 0.95);
+        --border-glow: rgba(0, 255, 65, 0.2);
     }
 
     body, html {
         margin: 0; padding: 0;
-        background-color: var(--deep-black);
-        background-image: 
-            radial-gradient(circle at 50% 50%, rgba(0, 255, 65, 0.05) 0%, transparent 80%),
-            linear-gradient(rgba(0, 255, 65, 0.02) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(0, 255, 65, 0.02) 1px, transparent 1px);
-        background-size: 100% 100%, 30px 30px, 30px 30px;
+        background: #000;
         color: var(--neon);
-        font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+        font-family: 'Inter', 'Segoe UI', sans-serif;
         min-height: 100vh;
         overflow-x: hidden;
-        cursor: crosshair; /* Detal hakerski */
     }
 
-    /* --- AVATAR Ξ: TWOJA BOSKA SYGNATURA --- */
-    .oracle-avatar {
-        width: 150px; height: 150px;
-        margin: 0 auto 50px;
+    /* --- EKRAN LOGOWANIA: WEJŚCIE DO TWIERDZY --- */
+    #loginOverlay {
+        position: fixed; inset: 0; background: radial-gradient(circle at center, #081a08 0%, #000 100%);
+        z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+
+    /* CENTRALNY SYMBOL Ξ Z PIERŚCIENIAMI GENEROWANYMI STYLEM */
+    .oracle-avatar, #loginOverlay::before {
+        content: "Ξ"; font-size: 100px; color: var(--white);
+        text-shadow: 0 0 30px var(--neon), 0 0 60px var(--neon);
+        margin-bottom: 60px;
         position: relative;
         display: flex; align-items: center; justify-content: center;
-    }
-    .oracle-avatar::before {
-        content: "Ξ";
-        font-size: 80px;
-        color: var(--white);
-        text-shadow: 0 0 30px var(--neon), 0 0 60px var(--neon);
-        z-index: 5;
-        animation: avatar-float 4s infinite ease-in-out;
-    }
-    /* Obracające się pierścienie danych */
-    .oracle-avatar::after {
-        content: "";
-        position: absolute;
-        inset: -20px;
-        border: 2px solid var(--neon);
-        border-radius: 45% 55% 70% 30% / 30% 60% 40% 70%; /* Organiczny ruch */
-        animation: rotate-organic 10s infinite linear;
-        box-shadow: inset 0 0 20px var(--neon);
+        animation: breath-core 4s infinite ease-in-out;
     }
 
-    @keyframes rotate-organic {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
+    /* PIERŚCIENIE ENERGII (Generowane z pseudo-elementów) */
+    .oracle-avatar::before, .oracle-avatar::after, #loginOverlay::after {
+        content: ""; position: absolute; border-radius: 50%; border: 2px solid var(--neon);
+        box-shadow: 0 0 20px var(--neon); animation: rotate-gear 10s linear infinite;
     }
-    @keyframes avatar-float {
-        0%, 100% { transform: translateY(0) scale(1); filter: brightness(1); }
-        50% { transform: translateY(-10px) scale(1.05); filter: brightness(1.5); }
-    }
+    .oracle-avatar::before { inset: -20px; border-style: dashed; opacity: 0.4; }
+    .oracle-avatar::after { inset: -45px; border-style: double; border-width: 4px; opacity: 0.2; animation-duration: 15s; animation-direction: reverse; }
 
-    /* --- ARCHITEKTURA WIEŻY --- */
-    .app {
-        max-width: 1800px;
-        margin: 60px auto;
-        padding: 60px;
-        background: var(--glass-bg);
-        backdrop-filter: blur(60px) saturate(150%);
-        border: 1px solid rgba(0, 255, 65, 0.2);
-        border-radius: 40px;
-        box-shadow: 
-            0 0 100px rgba(0,0,0,1),
-            inset 0 0 40px rgba(0, 255, 65, 0.05);
-        position: relative;
-        overflow: hidden;
-    }
+    @keyframes rotate-gear { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes breath-core { 0%, 100% { transform: scale(1); opacity: 0.7; } 50% { transform: scale(1.1); opacity: 1; } }
 
-    /* Świetlna linia postępu na górze */
-    .app::before {
-        content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-        background: linear-gradient(90deg, transparent, var(--neon), transparent);
-        animation: scan-line 3s infinite linear;
-    }
-
-    @keyframes scan-line { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
-
-    /* --- PANELE: KRYPTY DANYCH --- */
-    #leftPanel, #centerPanel, #rightPanel, .panel {
-        background: rgba(0, 0, 0, 0.8) !important;
-        border: 1px solid rgba(0, 255, 65, 0.1) !important;
-        border-radius: 20px !important;
-        padding: 35px !important;
-        box-shadow: 20px 20px 60px rgba(0,0,0,0.5);
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        position: relative;
-    }
-    .panel:hover {
-        border-color: var(--neon) !important;
-        transform: scale(1.01) translateY(-5px);
-        box-shadow: 0 0 40px rgba(0, 255, 65, 0.1);
-    }
-
-    /* --- TYPOGRAFIA: BIAŁY ABSOLUT --- */
-    strong, h2, .small strong {
-        color: var(--white) !important;
-        text-transform: uppercase !important;
-        font-size: 12px !important;
-        font-weight: 900 !important;
-        letter-spacing: 8px !important;
-        margin: 0 0 30px 0;
-        padding-left: 15px;
-        border-left: 4px solid var(--neon);
-        display: block;
-        text-shadow: 0 0 10px rgba(255,255,255,0.2);
-    }
-
-    /* --- TERMINALE: GŁĘBIA SYSTEMOWA --- */
-    #log, #logs, #ocrTextarea, #tableEditor {
-        background: #000000 !important;
-        border: 1px solid #111 !important;
-        color: var(--neon) !important;
-        font-family: 'JetBrains Mono', 'Fira Code', monospace;
-        font-size: 14px;
-        line-height: 1.8;
-        padding: 30px;
-        border-radius: 10px;
-        box-shadow: inset 0 0 20px #000;
-        transition: 0.3s;
-    }
-    #ocrTextarea:focus { border-color: var(--neon) !important; box-shadow: 0 0 20px var(--neon-glow); }
-
-    /* --- PRZYCISKI: OBIEKTY POŻĄDANIA --- */
-    button, .btn, .filebtn {
-        background: transparent !important;
-        border: 1px solid var(--white) !important;
-        color: var(--white) !important;
-        padding: 18px 40px !important;
-        border-radius: 0px !important; /* Brutalistyczny prostokąt */
-        font-weight: 900;
-        text-transform: uppercase;
-        letter-spacing: 4px;
-        font-size: 11px;
-        cursor: pointer;
-        transition: 0.3s all;
-        position: relative;
-        overflow: hidden;
-    }
-    button:hover {
-        background: var(--white) !important;
-        color: #000 !important;
-        box-shadow: 0 0 30px var(--white);
-        transform: skewX(-5deg);
-    }
-    /* Zielony przycisk główny */
-    .btn-main, #exportXLSX {
-        border-color: var(--neon) !important;
-        color: var(--neon) !important;
-    }
-    .btn-main:hover, #exportXLSX:hover {
-        background: var(--neon) !important;
-        color: #000 !important;
-        box-shadow: 0 0 30px var(--neon);
-    }
-
-    /* --- EKRAN LOGOWANIA: WEJŚCIE DO ŚWIĄTYNI --- */
-    #loginOverlay {
-        position: fixed; inset: 0; background: #000; z-index: 10000;
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
-    }
     #accessCode {
-        background: transparent; border: none; border-bottom: 2px solid var(--white);
-        color: var(--white); font-size: 4rem; text-align: center; width: 500px;
-        outline: none; letter-spacing: 20px; transition: 0.5s;
+        background: transparent; border: none; border-bottom: 3px solid var(--white);
+        color: var(--white); font-size: 3.5rem; text-align: center; width: 450px;
+        outline: none; letter-spacing: 15px; margin-bottom: 40px; transition: 0.5s;
         text-shadow: 0 0 20px var(--white);
     }
-    #accessCode:focus { border-color: var(--neon); color: var(--neon); text-shadow: 0 0 20px var(--neon); }
 
-    /* --- DETALE --- */
-    .pill, .chip {
-        background: var(--neon); color: #000; font-weight: bold;
-        padding: 5px 15px; border-radius: 0; font-size: 9px; letter-spacing: 2px;
+    /* --- INTERFEJS: SUPREME GLASS ARCHITECTURE --- */
+    .app {
+        max-width: 1700px; margin: 40px auto; padding: 50px;
+        background: var(--glass); backdrop-filter: blur(50px);
+        border: 1px solid var(--border-glow); border-radius: 40px;
+        box-shadow: 0 0 100px rgba(0,0,0,1), inset 0 0 40px rgba(0, 255, 65, 0.05);
+        display: none; flex-direction: column; gap: 30px;
     }
-    .footer { margin-top: 50px; opacity: 0.2; font-size: 11px; border-top: 1px solid var(--neon); padding-top: 25px; letter-spacing: 5px; }
+
+    .layout { display: grid; grid-template-columns: 400px 1fr 400px; gap: 25px; align-items: start; }
+    
+    /* PANELE - SZKLANE KOMORY */
+    .panel, #leftPanel, #centerPanel, #rightPanel {
+        background: rgba(0, 0, 0, 0.7) !important;
+        border: 1px solid rgba(0, 255, 65, 0.1) !important;
+        border-radius: 20px !important; padding: 30px !important;
+        box-shadow: inset 0 0 30px #000;
+        transition: 0.4s ease;
+    }
+    .panel:hover { border-color: var(--neon) !important; box-shadow: 0 0 30px rgba(0, 255, 65, 0.1); }
+
+    /* BIAŁA TYPOGRAFIA - ŚNIEŻNY KONTRAST */
+    strong, h2, .small strong {
+        color: var(--white) !important; text-transform: uppercase !important;
+        font-weight: 900 !important; letter-spacing: 6px !important; font-size: 11px !important;
+        border-left: 4px solid var(--neon); padding-left: 15px; margin-bottom: 25px;
+        display: block; text-shadow: 0 0 10px rgba(255,255,255,0.2);
+    }
+
+    /* PRZYCISKI - BRUTALISTYCZNE PILLS */
+    button, .btn, .filebtn {
+        background: transparent !important; border: 1px solid var(--neon) !important;
+        color: var(--neon) !important; padding: 15px 35px !important;
+        border-radius: 60px !important; font-weight: bold !important;
+        text-transform: uppercase !important; letter-spacing: 3px; font-size: 10px;
+        cursor: pointer; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    button:hover { background: var(--neon) !important; color: #000 !important; box-shadow: 0 0 40px var(--neon); transform: translateY(-5px); }
+
+    /* EDYTOR I LOGI */
+    #log, #logs, #ocrTextarea {
+        background: #000 !important; border: 1px solid #111 !important;
+        color: var(--neon) !important; font-family: 'JetBrains Mono', monospace;
+        padding: 20px; border-radius: 15px; line-height: 1.7;
 
    }
 
