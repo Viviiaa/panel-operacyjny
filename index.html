@@ -852,7 +852,7 @@ async function generateExcelFile() {
                 model: "llama3-8b-8192",
                 messages: [{
                     role: "user",
-                    content: "Zidentyfikuj dokument i zrób tabelę CSV (separator ;). TEKST: " + currentText.replace(/\n/g, " "),
+                    content: "Zrób tabelę CSV (separator ;). TEKST: " + currentText.replace(/["\n\r]/g, " "),
             }]
             })
         });
@@ -878,7 +878,7 @@ async function generateExcelFile() {
         // Luksusowe dopasowanie szerokości kolumn
         if (formattedRows.length > 0) {
             ws['!cols'] = formattedRows[0].map((_, i) => ({
-                 wch: Math.max(...formattedRows.map(row => row[i] ? row[i].v.toString().length : 15)) + 5
+                wch: Math.max(...formattedRows.map(row => row[i] && row[i].v ? row[i].v.toString().length : 10)) + 5
             }));
         }
 
