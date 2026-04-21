@@ -6,97 +6,92 @@
 <title>SYSTEM OPERACYJNY : WYROCZNIA</title>
 
 <style>
-     :root {
-        --bg: #020202;
-        --acc: #00ff41;
-        --dim: #003b00;
-        --panel-bg: rgba(15, 15, 15, 0.9); /* Nieco jaśniejszy odcień dla paneli */
-        --glow: 0 0 15px rgba(0, 255, 65, 0.2);
-    }
+      :root {
+            --acc: #00ff41;
+            --dim: #003b00;
+            --glass: rgba(10, 10, 10, 0.9);
+            --glow: 0 0 20px rgba(0, 255, 65, 0.3);
+        }
 
-    body {
-        background: var(--bg);
-        color: var(--acc);
-        font-family: 'Segoe UI', sans-serif;
-        margin: 0; padding: 0;
-        zoom: 0.85; /* Optymalne przeskalowanie */
-    }
+        body, html {
+            margin: 0; padding: 0; background: #000; color: var(--acc);
+            font-family: 'Segoe UI', sans-serif; overflow: hidden; height: 100vh;
+            zoom: 0.9; /* Idealna kompresja interfejsu */
+        }
 
-    /* KONTENER GŁÓWNY - Wyraźna ramka */
-    .app {
-        max-width: 1350px;
-        margin: 20px auto;
-        background: rgba(10, 10, 10, 0.8);
-        backdrop-filter: blur(20px);
-        border: 2px solid var(--dim); /* Grubsza ramka główna */
-        border-radius: 20px;
-        padding: 25px;
-        box-shadow: 0 0 40px #000, inset 0 0 20px rgba(0, 255, 65, 0.05);
-    }
+        /* --- BACKGROUND MATRIX ENGINE --- */
+        #matrix-bg { position: fixed; inset: 0; z-index: -1; opacity: 0.15; }
 
-    /* PANELE - Teraz każdy ma własną "wyspę" */
-    .panel {
-        background: var(--panel-bg);
-        border: 1px solid #1a1a1a; /* Ciemna, ale widoczna ramka separatora */
-        border-top: 2px solid var(--dim); /* Neonowa góra panelu */
-        border-radius: 12px;
-        padding: 20px;
-        box-shadow: 5px 5px 15px rgba(0,0,0,0.5);
-        margin-bottom: 10px;
-    }
+        /* --- ORACLE AVATAR Ξ --- */
+        .oracle-avatar {
+            width: 70px; height: 70px; margin: 0 auto 15px; border: 2px solid var(--acc);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            box-shadow: var(--glow); animation: pulse 3s infinite ease-in-out; position: relative;
+        }
+        .oracle-avatar::before { content: "Ξ"; font-size: 35px; text-shadow: 0 0 15px var(--acc); }
+        .oracle-avatar::after {
+            content: ""; position: absolute; inset: -8px; border: 1px solid var(--dim);
+            border-radius: 50%; animation: rotate 10s linear infinite;
+        }
+        @keyframes pulse { 0%, 100% { transform: scale(1); box-shadow: 0 0 20px var(--acc); } 50% { transform: scale(1.05); box-shadow: 0 0 40px var(--acc); } }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-    /* LOGI I EDYTOR - Wgłębienie w panelu */
-    #logs, #ocrTextarea {
-        background: #000 !important;
-        border: 1px solid #222 !important;
-        box-shadow: inset 0 0 10px #000; /* Efekt wgłębienia */
-        color: var(--acc);
-        font-family: 'Courier New', monospace;
-        padding: 15px;
-        margin-top: 10px;
-    }
+        /* --- LOGIN PROTOCOL --- */
+        #loginOverlay {
+            position: fixed; inset: 0; background: radial-gradient(circle, #0a1a0a 0%, #000 100%);
+            z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        #accessCode {
+            background: transparent; border: 1px solid var(--acc); color: var(--acc);
+            padding: 15px; border-radius: 50px; text-align: center; font-size: 1.8rem;
+            outline: none; width: 320px; box-shadow: var(--glow); letter-spacing: 5px;
+        }
 
-    #ocrTextarea:focus {
-        border-color: var(--acc) !important;
-        box-shadow: 0 0 10px var(--dim), inset 0 0 5px #000;
-    }
+        /* --- MAIN ARCHITECTURE --- */
+        .app {
+            max-width: 1400px; height: 92vh; margin: 4vh auto;
+            background: var(--glass); backdrop-filter: blur(20px);
+            border: 2px solid var(--dim); border-radius: 25px; padding: 30px;
+            display: none; flex-direction: column; gap: 20px; box-shadow: 0 0 60px #000;
+            position: relative;
+        }
 
-    /* NAGŁÓWKI PANELI - Jasny, czytelny akcent */
-    .panel strong {
-        color: #fff; /* Biały tekst dla nagłówków, żeby odcinał się od zieleni */
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        font-size: 0.85rem;
-        display: block;
-        margin-bottom: 10px;
-        border-bottom: 1px solid var(--dim);
-        padding-bottom: 5px;
-    }
+        header { text-align: center; border-bottom: 1px solid var(--dim); padding-bottom: 15px; }
+        h1 { font-family: 'Courier New', monospace; letter-spacing: 8px; margin: 0; text-transform: uppercase; }
+        .lead { font-size: 0.8rem; opacity: 0.6; letter-spacing: 2px; }
 
-    /* PRZYCISKI - Mocniejszy gradient */
-    button, .filebtn {
-        background: linear-gradient(180deg, #002200 0%, #000 100%);
-        border: 1px solid var(--dim);
-        color: var(--acc);
-        transition: 0.3s all ease;
-    }
+        .main-grid { display: grid; grid-template-columns: 400px 1fr; gap: 30px; flex-grow: 1; overflow: hidden; }
+        
+        /* --- PANELS --- */
+        .panel { 
+            background: rgba(20, 20, 20, 0.7); border: 1px solid var(--dim); 
+            border-radius: 18px; padding: 20px; display: flex; flex-direction: column; gap: 15px;
+            box-shadow: inset 0 0 20px #000;
+        }
+        h2 { color: #fff; font-size: 0.85rem; letter-spacing: 2px; text-transform: uppercase; border-bottom: 1px solid var(--dim); padding-bottom: 8px; }
 
-    button:hover {
-        border-color: var(--acc);
-        background: var(--dim);
-        color: #fff;
-        box-shadow: var(--glow);
-    }
+        #logs, #ocrTextarea { 
+            background: #000; border: 1px solid #1a1a1a; color: var(--acc); 
+            font-family: 'Courier New', monospace; font-size: 12px; padding: 15px; border-radius: 12px; 
+        }
+        #logs { flex-grow: 1; overflow-y: auto; line-height: 1.5; }
+        #ocrTextarea { flex-grow: 1; resize: none; outline: none; border-left: 3px solid var(--dim); }
 
-    /* STATUSY (CHIPY) - Odcinające się tło */
-    .pill, .chip {
-        background: #111;
-        border: 1px solid var(--dim);
-        color: #fff;
-        padding: 4px 10px;
-        border-radius: 4px;
-        font-size: 0.7rem;
-    }
+        /* --- BUTTONS --- */
+        button, .filebtn {
+            background: linear-gradient(180deg, #002200 0%, #000 100%);
+            color: var(--acc); border: 1px solid var(--dim); padding: 12px;
+            border-radius: 10px; cursor: pointer; font-weight: bold; 
+            text-transform: uppercase; transition: 0.3s all;
+        }
+        button:hover { border-color: var(--acc); box-shadow: var(--glow); color: #fff; transform: translateY(-2px); }
+        .btn-main { background: var(--acc) !important; color: #000 !important; }
+
+        /* --- ERROR LOGIC --- */
+        #errorOverlay {
+            position: fixed; inset: 0; background: rgba(120, 0, 0, 0.95);
+            display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10001;
+        }
 </style>
 
 <!-- Libraries -->
