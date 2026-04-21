@@ -7,89 +7,147 @@
 
 <style>
     :root {
-        --bg: #050505;
-        --acc: #00ff41;
-        --dim: #003b00;
-        --glass: rgba(10, 10, 10, 0.9);
+        --bg-color: #050505;
+        --matrix-green: #00ff41;
+        --dark-green: #003b00;
+        --glass-bg: rgba(10, 10, 10, 0.8);
+        --glow: 0 0 15px rgba(0, 255, 65, 0.3);
     }
 
     body {
-        background-color: var(--bg);
-        color: var(--acc);
-        font-family: 'Segoe UI', sans-serif;
+        background-color: var(--bg-color);
+        background-image: 
+            radial-gradient(circle at 50% 50%, #0a1a0a 0%, #050505 100%);
+        color: var(--matrix-green);
+        font-family: 'Segoe UI', 'Courier New', monospace;
         margin: 0;
-        padding: 10px; /* Mniejszy margines strony */
-        height: 100vh;
-        overflow: hidden; /* Blokujemy scrollowanie całej strony */
+        padding: 20px;
+        min-height: 100vh;
     }
 
-    /* KONTENER GŁÓWNY - Dopasowany do ekranu */
+    /* NOWOCZESNY KONTENER - Efekt Szkła */
     .app {
-        height: calc(100vh - 20px);
-        display: grid;
-        grid-template-columns: 300px 1fr 400px; /* Trzy kolumny: Logi | Podgląd | Edytor */
-        grid-template-rows: auto 1fr auto;
-        gap: 10px;
-        background: var(--glass);
+        max-width: 1400px;
+        margin: 0 auto;
+        background: var(--glass-bg);
         backdrop-filter: blur(10px);
-        border: 1px solid var(--dim);
+        border: 1px solid var(--dark-green);
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 0 40px rgba(0, 0, 0, 0.5), var(--glow);
+    }
+
+    header {
+        text-align: center;
+        margin-bottom: 40px;
+        border-bottom: 1px solid var(--dim-green);
+    }
+
+    h1 {
+        font-size: 2.5em;
+        letter-spacing: 8px;
+        text-transform: uppercase;
+        text-shadow: 0 0 20px var(--matrix-green);
+        margin: 0;
+    }
+
+    /* PRZYCISKI - Futurystyczny Design */
+    button, .filebtn {
+        background: linear-gradient(45deg, #001a00, #003b00);
+        color: var(--matrix-green);
+        border: 1px solid var(--matrix-green);
+        padding: 12px 25px;
+        border-radius: 5px;
+        text-transform: uppercase;
+        font-weight: bold;
+        letter-spacing: 2px;
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+        overflow: hidden;
+    }
+
+    button:hover {
+        background: var(--matrix-green);
+        color: #000;
+        box-shadow: 0 0 30px var(--matrix-green);
+        transform: translateY(-3px);
+    }
+
+    /* LOGI - Przezroczysty Terminal */
+    #logs {
+        background: rgba(0, 0, 0, 0.6) !important;
+        border: 1px solid var(--dark-green) !important;
         border-radius: 10px;
         padding: 15px;
+        height: 200px;
+        font-family: 'Courier New', monospace;
+        font-size: 13px;
+        box-shadow: inset 0 0 20px #000;
     }
 
-    header { grid-column: 1 / -1; margin-bottom: 5px; border-bottom: 1px solid var(--dim); }
-    h1 { font-size: 1.2rem; margin: 0; letter-spacing: 3px; } /* Mniejszy tytuł */
-    .lead { font-size: 0.8rem; margin: 2px 0; opacity: 0.7; }
-
-    /* LEWY PANEL - Sterowanie i Logi */
-    #leftPanel { display: flex; flex-direction: column; gap: 10px; overflow: hidden; }
-    #logs { 
-        flex-grow: 1; 
-        font-size: 11px; 
-        background: rgba(0,0,0,0.5); 
-        padding: 8px; 
-        height: auto; /* Sam się dopasuje */
+    /* SEKCJE EDYCJI I EKSPORTU */
+    .section-card {
+        background: rgba(20, 20, 20, 0.5);
+        border-radius: 10px;
+        border-left: 4px solid var(--matrix-green);
+        padding: 20px;
+        margin-top: 20px;
     }
 
-    /* ŚRODKOWY PANEL - Podgląd obrazu */
-    #centerPanel { 
-        border: 1px solid var(--dim); 
-        background: #000; 
-        display: flex; 
-        align-items: center; 
-        justify-content: center;
-        overflow: auto;
+    /* PASEK POSTĘPU - Animowany */
+    .progress-bar {
+        height: 6px;
+        background: #111;
+        border-radius: 10px;
+        overflow: hidden;
+        margin: 20px 0;
+        border: 1px solid var(--dark-green);
     }
-    #canvasArea canvas { max-width: 100%; height: auto; }
 
-    /* PRAWY PANEL - Edytor i Eksport */
-    #rightPanel { display: flex; flex-direction: column; gap: 10px; }
-    textarea { 
-        flex-grow: 1; 
-        background: #000; 
-        color: var(--acc); 
-        border: 1px solid var(--dim); 
-        font-family: 'Courier New', monospace; 
-        font-size: 12px; 
+    .progress-fill {
+        background: linear-gradient(90deg, var(--dark-green), var(--matrix-green));
+        height: 100%;
+        box-shadow: 0 0 15px var(--matrix-green);
+        transition: width 0.5s ease-in-out;
+    }
+
+    /* INPUTY I TEXTAREA */
+    textarea, input[type="password"] {
+        background: rgba(0,0,0,0.8);
+        border: 1px solid var(--dark-green);
+        border-radius: 5px;
+        color: var(--matrix-green);
         padding: 10px;
-        resize: none;
+        outline: none;
     }
 
-    /* PRZYCISKI - Bardziej kompaktowe */
-    button, .filebtn {
-        padding: 8px 15px;
-        font-size: 0.75rem;
-        margin: 0;
+    textarea:focus { border-color: var(--matrix-green); }
+
+    /* EKRAN LOGOWANIA - Cyberpunk Style */
+    #loginOverlay {
+        background: radial-gradient(circle at center, #0a1a0a 0%, #000 100%);
     }
 
-    .pill, .chip { font-size: 0.7rem; padding: 2px 8px; }
+    #accessCode {
+        border-radius: 30px;
+        width: 300px;
+        letter-spacing: 5px;
+    }
 
-    footer { grid-column: 1 / -1; font-size: 0.7rem; opacity: 0.5; padding-top: 5px; }
+    /* Animacja mrugania dla błędów */
+    @keyframes pulse-red {
+        0% { box-shadow: 0 0 10px #f00; }
+        50% { box-shadow: 0 0 30px #f00; }
+        100% { box-shadow: 0 0 10px #f00; }
+    }
 
-    /* Ukrywamy scrollbar, żeby było hakersko */
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-thumb { background: var(--dim); }
+    #errorOverlay h1 {
+        animation: pulse-red 1.5s infinite;
+    }
+
 </style>
+
 
 <!-- Libraries -->
 <script src="https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
@@ -167,6 +225,11 @@
         <button id="nextPage" class="btn">▶</button>
         <div class="pill" id="ocrStatus">SILNIK OCR: STANDBY</div>
         <div class="progress" style="flex:1"><i id="progFill"></i></div>
+      </div>
+
+      <div style="margin-top:12px">
+        <div class="small"><strong>EDYCJA STRUKTURY DANYCH PRZED EKSPORTEM</strong></div>
+        <div class="table-edit" id="tableEditor" style="margin-top:8px;min-height:160px"></div>
       </div>
 
       <div style="margin-top:8px;display:flex;gap:8px">
