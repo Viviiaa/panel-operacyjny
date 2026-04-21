@@ -7,143 +7,182 @@
 
 <style>
     :root {
-        --bg-color: #050505;
-        --matrix-green: #00ff41;
-        --dark-green: #003b00;
-        --glass-bg: rgba(10, 10, 10, 0.8);
-        --glow: 0 0 15px rgba(0, 255, 65, 0.3);
+        --acc: #00ff41; /* Jadowita zieleń Wyroczni */
+        --dim: #003b00; /* Głęboki mrok */
+        --glass: rgba(8, 8, 8, 0.85); /* Dymione szkło */
+        --glow: 0 0 20px rgba(0, 255, 65, 0.2);
+        --border: 1px solid rgba(0, 255, 65, 0.15);
     }
 
-    body {
-        background-color: var(--bg-color);
-        background-image: 
-            radial-gradient(circle at 50% 50%, #0a1a0a 0%, #050505 100%);
-        color: var(--matrix-green);
-        font-family: 'Segoe UI', 'Courier New', monospace;
-        margin: 0;
-        padding: 20px;
+    /* FUNDAMENTY - CZYSTOŚĆ I BRAK SCROLLA NA BOKI */
+    body, html {
+        margin: 0; padding: 0;
+        background: #000;
+        color: var(--acc);
+        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         min-height: 100vh;
+        overflow-x: hidden;
     }
 
-    /* NOWOCZESNY KONTENER - Efekt Szkła */
+    /* ANIMOWANY MATRIX - BEZPIECZNE TŁO */
+    #matrix-bg {
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        opacity: 0.12;
+        pointer-events: none;
+    }
+
+    /* AVATAR Ξ - TWOJA SYGNATURA */
+    .oracle-avatar {
+        width: 70px; height: 70px;
+        margin: 0 auto 20px;
+        border: 2px solid var(--acc);
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: var(--glow);
+        animation: oracle-pulse 3s infinite ease-in-out;
+        position: relative;
+    }
+    .oracle-avatar::before { content: "Ξ"; font-size: 35px; text-shadow: 0 0 10px var(--acc); font-family: monospace; }
+    
+    @keyframes oracle-pulse {
+        0%, 100% { transform: scale(1); box-shadow: 0 0 15px var(--acc); }
+        50% { transform: scale(1.03); box-shadow: 0 0 30px var(--acc); }
+    }
+
+    /* GŁÓWNY KONTENER - "SZKLANA WIEŻA" */
     .app {
-        max-width: 1400px;
-        margin: 0 auto;
-        background: var(--glass-bg);
-        backdrop-filter: blur(10px);
-        border: 1px solid var(--dark-green);
-        border-radius: 15px;
-        padding: 30px;
-        box-shadow: 0 0 40px rgba(0, 0, 0, 0.5), var(--glow);
+        max-width: 1450px;
+        margin: 40px auto;
+        background: var(--glass);
+        backdrop-filter: blur(25px);
+        border: var(--border);
+        border-radius: 24px;
+        padding: 40px;
+        box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+        display: none; /* JS TO POKAŻE */
+        flex-direction: column;
+        gap: 30px;
     }
 
+    /* NAGŁÓWEK - MAJESTATYCZNY */
     header {
         text-align: center;
-        margin-bottom: 40px;
-        border-bottom: 1px solid var(--dim-green);
+        border-bottom: 1px solid var(--dim);
+        padding-bottom: 30px;
     }
-
     h1 {
-        font-size: 2.5em;
-        letter-spacing: 8px;
-        text-transform: uppercase;
-        text-shadow: 0 0 20px var(--matrix-green);
+        font-family: 'Courier New', monospace;
+        letter-spacing: 12px;
         margin: 0;
-    }
-
-    /* PRZYCISKI - Futurystyczny Design */
-    button, .filebtn {
-        background: linear-gradient(45deg, #001a00, #003b00);
-        color: var(--matrix-green);
-        border: 1px solid var(--matrix-green);
-        padding: 12px 25px;
-        border-radius: 5px;
         text-transform: uppercase;
-        font-weight: bold;
-        letter-spacing: 2px;
-        cursor: pointer;
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        position: relative;
-        overflow: hidden;
+        font-size: 2.2rem;
+        text-shadow: 0 0 15px rgba(0, 255, 65, 0.4);
+    }
+    .lead { font-size: 0.85rem; opacity: 0.5; letter-spacing: 4px; margin-top: 10px; }
+
+    /* GRID - ARCHITEKTURA PRZESTRZENI */
+    .main-grid {
+        display: grid;
+        grid-template-columns: 420px 1fr;
+        gap: 35px;
     }
 
-    button:hover {
-        background: var(--matrix-green);
-        color: #000;
-        box-shadow: 0 0 30px var(--matrix-green);
-        transform: translateY(-3px);
+    /* PANELE - KONTRAST I PORZĄDEK */
+    .panel {
+        background: rgba(0, 0, 0, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        border-top: 2px solid var(--dim);
+        border-radius: 18px;
+        padding: 25px;
+        box-shadow: inset 0 0 30px rgba(0,0,0,0.5);
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
     }
 
-    /* LOGI - Przezroczysty Terminal */
-    #logs {
-        background: rgba(0, 0, 0, 0.6) !important;
-        border: 1px solid var(--dark-green) !important;
-        border-radius: 10px;
-        padding: 15px;
-        height: 200px;
+    /* BIAŁE NAGŁÓWKI - CZYTELNOŚĆ PREMIUM */
+    h2, .panel strong {
+        color: #FFFFFF !important;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        margin: 0;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--dim);
+        display: block;
+    }
+
+    /* TERMINAL I EDYTOR - GŁĘBOKA CZERŃ */
+    #logs, #ocrTextarea {
+        background: #000000 !important;
+        border: 1px solid #151515 !important;
+        color: var(--acc) !important;
         font-family: 'Courier New', monospace;
         font-size: 13px;
-        box-shadow: inset 0 0 20px #000;
+        border-radius: 12px;
+        padding: 18px;
+        line-height: 1.6;
     }
-
-    /* SEKCJE EDYCJI I EKSPORTU */
-    .section-card {
-        background: rgba(20, 20, 20, 0.5);
-        border-radius: 10px;
-        border-left: 4px solid var(--matrix-green);
-        padding: 20px;
-        margin-top: 20px;
-    }
-
-    /* PASEK POSTĘPU - Animowany */
-    .progress-bar {
-        height: 6px;
-        background: #111;
-        border-radius: 10px;
-        overflow: hidden;
-        margin: 20px 0;
-        border: 1px solid var(--dark-green);
-    }
-
-    .progress-fill {
-        background: linear-gradient(90deg, var(--dark-green), var(--matrix-green));
-        height: 100%;
-        box-shadow: 0 0 15px var(--matrix-green);
-        transition: width 0.5s ease-in-out;
-    }
-
-    /* INPUTY I TEXTAREA */
-    textarea, input[type="password"] {
-        background: rgba(0,0,0,0.8);
-        border: 1px solid var(--dark-green);
-        border-radius: 5px;
-        color: var(--matrix-green);
-        padding: 10px;
+    #logs { height: 280px; overflow-y: auto; scroll-behavior: smooth; }
+    #ocrTextarea {
+        width: 100%; height: 500px;
+        box-sizing: border-box;
+        resize: vertical;
         outline: none;
+        border-left: 3px solid var(--acc) !important; /* Wskaźnik edycji */
+        transition: 0.3s;
     }
+    #ocrTextarea:focus { border-color: var(--acc) !important; box-shadow: var(--glow); }
 
-    textarea:focus { border-color: var(--matrix-green); }
+    /* PRZYCISKI - NEONOWE NARZĘDZIA */
+    button, .filebtn {
+        background: linear-gradient(180deg, #051505 0%, #000 100%) !important;
+        color: var(--acc) !important;
+        border: 1px solid var(--dim) !important;
+        padding: 14px 24px;
+        border-radius: 10px;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        cursor: pointer;
+        transition: 0.4s all cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    button:hover {
+        border-color: var(--acc) !important;
+        color: #fff !important;
+        box-shadow: var(--glow);
+        transform: translateY(-3px);
+    }
+    .btn-main { background: var(--acc) !important; color: #000 !important; border: none !important; }
+    .btn-main:hover { background: #fff !important; color: #000 !important; box-shadow: 0 0 30px #fff; }
 
-    /* EKRAN LOGOWANIA - Cyberpunk Style */
+    /* EKRAN LOGOWANIA - POWAŻNA BRAMA */
     #loginOverlay {
-        background: radial-gradient(circle at center, #0a1a0a 0%, #000 100%);
+        position: fixed; inset: 0; background: #000; z-index: 10000;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
     }
-
     #accessCode {
-        border-radius: 30px;
-        width: 300px;
-        letter-spacing: 5px;
+        background: transparent; border: 1px solid var(--dim);
+        color: var(--acc); padding: 18px; border-radius: 50px;
+        text-align: center; font-size: 1.8rem; width: 350px;
+        outline: none; transition: 0.3s; box-shadow: inset 0 0 10px #000;
     }
+    #accessCode:focus { border-color: var(--acc); box-shadow: var(--glow); }
 
-    /* Animacja mrugania dla błędów */
-    @keyframes pulse-red {
-        0% { box-shadow: 0 0 10px #f00; }
-        50% { box-shadow: 0 0 30px #f00; }
-        100% { box-shadow: 0 0 10px #f00; }
-    }
+    /* SCROLLBAR - HAKERSKI DETAL */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: #000; }
+    ::-webkit-scrollbar-thumb { background: var(--dim); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--acc); }
 
-    #errorOverlay h1 {
-        animation: pulse-red 1.5s infinite;
+    /* STOPKA MODUŁOWA */
+    footer {
+        margin-top: 20px;
+        display: flex; justify-content: space-between;
+        font-size: 10px; opacity: 0.3; letter-spacing: 1px;
+        border-top: 1px solid var(--dim); padding-top: 15px;
     }
 
 </style>
