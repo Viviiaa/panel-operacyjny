@@ -6,144 +6,96 @@
 <title>SYSTEM OPERACYJNY: WYROCZNIA</title>
 
 <style>
-         :root {
+       :root {
         --acc: #00ff41;
         --white: #ffffff;
-        --bg: #000000;
-        /* Nowy, lżejszy efekt szkła */
-        --glass: rgba(15, 15, 15, 0.9);
-        --border: rgba(255, 255, 255, 0.1);
+        --glass: rgba(8, 8, 8, 0.98);
+        --dim: rgba(0, 255, 65, 0.15);
     }
 
     body, html {
-        margin: 0; padding: 0;
-        background: var(--bg);
-        color: var(--white);
-        font-family: 'Inter', system-ui, -apple-system, sans-serif;
-        min-height: 100vh;
-        overflow-x: hidden;
+        margin: 0; padding: 0; background: #000; color: var(--acc);
+        font-family: 'Segoe UI', sans-serif; min-height: 100vh; overflow-x: hidden;
     }
 
-    /* --- LOGOWANIE: ABSOLUTNA PRECYZJA (Naprawione klikanie) --- */
+    /* --- TWOJE IDEALNE LOGOWANIE (LINIE 32-71 - PRZYWRÓCONE 1:1) --- */
     #loginOverlay {
-        position: fixed; inset: 0; background: var(--bg); z-index: 10000;
+        position: fixed; inset: 0; background: #000; z-index: 10000;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
-        /* Usunięto wszystkie transformacje psujące celowanie */
     }
-
-    /* PORTAL ENERGII Ξ */
     #loginOverlay::before {
-        content: "Ξ"; font-size: 120px; color: var(--white);
-        text-shadow: 0 0 50px var(--acc); margin-bottom: 40px;
-        animation: pulse 4s infinite ease-in-out;
+        content: "Ξ"; font-size: 110px; color: var(--white);
+        text-shadow: 0 0 50px var(--acc); margin-bottom: 50px;
+        animation: breath-gate 4s infinite ease-in-out;
     }
+    #loginOverlay::after {
+        content: ""; position: absolute; width: 280px; height: 280px;
+        border: 2px solid var(--acc); border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+        animation: rotate-portal 10s infinite linear; box-shadow: inset 0 0 40px var(--acc); opacity: 0.3;
+    }
+    @keyframes rotate-portal { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes breath-gate { 0%, 100% { transform: scale(1); opacity: 0.4; } 50% { transform: scale(1.05); opacity: 1; } }
 
-    /* POLE HASŁA - 1:1 REAKCJA NA MYSZKĘ */
+    /* HASŁO - NAPRAWIONE CELOWANIE */
     #accessCode {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid var(--white);
-        border-radius: 12px;
-        color: var(--white);
-        font-size: 3rem;
-        text-align: center;
-        width: 500px;
-        height: 100px;
-        padding: 0 20px;
-        outline: none;
-        letter-spacing: 15px;
-        transition: 0.3s;
-        /* ZERO animacji przesuwających - teraz trafisz za każdym razem */
+        background: transparent; border: none; border-bottom: 2px solid var(--white);
+        color: var(--white); font-size: 4rem; text-align: center; width: 450px;
+        outline: none; letter-spacing: 15px; position: relative; z-index: 10001;
     }
-    #accessCode:focus { border-color: var(--acc); box-shadow: 0 0 30px rgba(0,255,65,0.2); }
 
-    /* --- SYSTEM: NOWY PORZĄDEK (MODERN DASHBOARD) --- */
+    /* --- NOWOCZESNA RENOWACJA SYSTEMU (TWOJE DIVY) --- */
     .app {
-        max-width: 1600px;
-        margin: 50px auto;
-        padding: 60px;
-        background: var(--glass);
-        backdrop-filter: blur(80px);
-        border: 1px solid var(--border);
-        border-radius: 50px;
-        box-shadow: 0 100px 200px rgba(0,0,0,0.8);
-        display: none;
+        max-width: 1750px; margin: 40px auto; padding: 50px;
+        background: var(--glass); backdrop-filter: blur(60px);
+        border: 1px solid var(--dim); border-radius: 45px;
+        box-shadow: 0 50px 150px #000; position: relative; overflow: hidden;
     }
 
-    /* NOWOCZESNY UKŁAD PANELOWY */
-    .layout {
-        display: grid;
-        grid-template-columns: 420px 1fr 420px;
-        gap: 35px;
-        align-items: start;
+    /* LATAJĄCY SKANER ENERGII NA GÓRZE */
+    .app::before {
+        content: ""; position: absolute; top: 0; left: -100%; width: 100%; height: 2px;
+        background: linear-gradient(90deg, transparent, var(--acc), transparent);
+        animation: scan-line 6s linear infinite;
+    }
+    @keyframes scan-line { 0% { left: -100%; } 100% { left: 100%; } }
+
+    /* PANELE - SZKLANE I CIĘŻKIE (NOWOCZESNE) */
+    .panel, #leftPanel, #centerPanel, #rightPanel, .section-card {
+        background: rgba(0, 0, 0, 0.7) !important;
+        border: 1px solid var(--dim) !important;
+        border-radius: 25px !important; padding: 35px !important;
+        margin-bottom: 25px; box-shadow: inset 0 0 30px #000;
+        transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .panel:hover { border-color: var(--acc) !important; transform: translateY(-5px); }
+
+    /* BIAŁE NAGŁÓWKI - TWOJA CZYTELNOŚĆ PREMIUM */
+    strong, h2, .small strong, .panel-title {
+        color: var(--white) !important; text-transform: uppercase !important;
+        letter-spacing: 6px !important; font-size: 0.8rem !important;
+        border-left: 5px solid var(--acc); padding-left: 20px;
+        margin-bottom: 25px; display: block;
     }
 
-    /* PANELE - "FLOAT CARDS" */
-    .panel, #leftPanel, #centerPanel, #rightPanel {
-        background: rgba(255, 255, 255, 0.02) !important;
-        border: 1px solid var(--border) !important;
-        border-radius: 30px !important;
-        padding: 40px !important;
-        transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
-    }
-    .panel:hover {
-        background: rgba(255, 255, 255, 0.05) !important;
-        border-color: var(--acc) !important;
-        transform: translateY(-10px);
-    }
-
-    /* NAGŁÓWKI - TYPOGRAFIA PREMIUM (BIAŁA) */
-    strong, h2, .small strong {
-        color: var(--white) !important;
-        text-transform: uppercase;
-        font-weight: 900;
-        letter-spacing: 8px;
-        font-size: 0.7rem;
-        margin-bottom: 30px;
-        display: block;
-        opacity: 0.6;
-    }
-
-    /* PRZYCISKI - MINIMALISTYCZNE CAPSULES */
+    /* PRZYCISKI - NEONOWE TABLETKI */
     button, .btn, .filebtn {
-        background: var(--white) !important;
-        color: var(--bg) !important;
-        border: none !important;
-        padding: 20px 40px !important;
-        border-radius: 100px !important;
-        font-weight: 900;
-        text-transform: uppercase;
-        letter-spacing: 4px;
-        font-size: 0.65rem;
-        cursor: pointer;
-        transition: 0.4s;
+        background: transparent !important; border: 1px solid var(--acc) !important;
+        color: var(--acc) !important; padding: 12px 28px !important;
+        border-radius: 50px !important; font-weight: bold; text-transform: uppercase;
+        font-size: 0.7rem; cursor: pointer; transition: 0.3s;
     }
-    button:hover, .filebtn:hover {
-        background: var(--acc) !important;
-        box-shadow: 0 20px 40px rgba(0, 255, 65, 0.3);
-        transform: scale(1.05);
-    }
+    button:hover { background: var(--acc) !important; color: #000 !important; box-shadow: 0 0 30px var(--acc); }
 
-    /* EDYTOR I LOGI - CZARNE KRYSZTAŁY */
+    /* EDYTOR I LOGI - PANCERNA CZERŃ */
     #log, #logs, #ocrTextarea {
-        background: rgba(0, 0, 0, 0.9) !important;
-        border: 1px solid var(--border) !important;
-        color: var(--acc) !important;
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 15px;
-        line-height: 1.8;
-        padding: 30px;
-        border-radius: 25px;
+        background: #000 !important; border: 1px solid #111 !important;
+        color: var(--acc) !important; font-family: monospace;
+        padding: 25px; border-radius: 20px; line-height: 1.7;
     }
-    #ocrTextarea { height: 550px; border-left: 6px solid var(--acc) !important; }
+    #ocrTextarea { border-left: 4px solid var(--acc) !important; }
 
-    /* LOGO SYSTEMOWE Ξ */
-    .system-logo {
-        position: fixed; top: 40px; left: 40px;
-        font-size: 24px; font-weight: bold; letter-spacing: 10px;
-        opacity: 0.3;
-    }
-
-    @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; transform: scale(1.05); } }
+    /* MATRIX TŁO */
+    #matrix-bg { position: fixed; inset: 0; z-index: -1; opacity: 0.1; pointer-events: none; }
     }
 
 </style>
