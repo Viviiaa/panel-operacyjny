@@ -865,7 +865,7 @@ async function generateExcelFile() {
         if (!response.ok) throw new Error("API nie odpowiada: " + response.status);
 
         const data = await response.json();
-        const aiText = data.choices[0].message.content.replace(/```csv|```/gi, "").trim();
+        const aiResult = data.choices[0].message.content.replace(/```csv|```/gi, "").trim();
 
         // Filtr "antysrakowy" - usuwa śmieci od AI
         aiResult = aiResult.replace(/```csv|```|Oto tabela:|Oto dane:/gi, "").trim();
