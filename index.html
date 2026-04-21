@@ -7,147 +7,146 @@
 
 <style>
         :root {
-        --acc: #00ff41;
+        --neon: #00ff41;
         --white: #ffffff;
-        --glass: rgba(10, 10, 10, 0.98);
-        --dim: rgba(255, 255, 255, 0.05);
+        --glass: rgba(8, 8, 8, 0.98);
+        --border: rgba(0, 255, 65, 0.2);
     }
 
     body, html {
         margin: 0; padding: 0; background: #000 !important;
-        color: var(--acc) !important; font-family: 'Inter', 'Segoe UI', sans-serif;
-        min-height: 100vh; overflow-x: hidden;
+        color: var(--neon) !important; font-family: 'Segoe UI', sans-serif;
+        min-height: 100vh; width: 100vw; overflow-x: hidden;
     }
 
-    /* --- TWOJE IDEALNE LOGOWANIE (LINIE 32-71 - NIETYKALNE) --- */
+    /* --- TWOJE IDEALNE LOGOWANIE (NIETYKALNE) --- */
     #loginOverlay {
         position: fixed; inset: 0; background: #000; z-index: 10000;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
     }
     #loginOverlay::before {
         content: "Ξ"; font-size: 110px; color: var(--white);
-        text-shadow: 0 0 50px var(--acc); margin-bottom: 50px;
+        text-shadow: 0 0 50px var(--neon); margin-bottom: 50px;
         animation: breath-gate 4s infinite ease-in-out;
     }
     #loginOverlay::after {
         content: ""; position: absolute; width: 280px; height: 280px;
-        border: 2px solid var(--acc); border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
-        animation: rotate-portal 10s infinite linear; box-shadow: inset 0 0 40px var(--acc); opacity: 0.3;
+        border: 2px solid var(--neon); border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+        animation: rotate-portal 10s infinite linear; box-shadow: inset 0 0 40px var(--neon); opacity: 0.3;
     }
     @keyframes rotate-portal { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-    @keyframes breath-gate { 0%, 100% { opacity: 0.4; transform: scale(1); } 50% { opacity: 1; transform: scale(1.05); } }
+    @keyframes breath-gate { 0%, 100% { transform: scale(1); opacity: 0.4; } 50% { transform: scale(1.05); opacity: 1; } }
     #accessCode {
         background: transparent; border: none; border-bottom: 3px solid var(--white);
         color: var(--white); font-size: 4rem; text-align: center; width: 450px;
         outline: none; letter-spacing: 15px; position: relative; z-index: 10001;
     }
 
-    /* --- SYSTEM: NOWOCZESNA RENOWACJA TWOICH DIVÓW --- */
+    /* --- SYSTEM: PEŁNOEKRANOWY KOKPIT (100% SZEROKOŚCI) --- */
     .app {
-        width: 100% !important;
-        max-width: 1850px !important;
-        margin: 0 auto !important;
-        padding: 60px !important;
+        width: 100vw !important; /* ROZCIĄGNIĘCIE NA CAŁY MONITOR */
+        min-height: 100vh;
+        margin: 0 !important;
+        padding: 40px !important;
         background: var(--glass) !important;
         backdrop-filter: blur(80px);
-        box-sizing: border-box;
+        box-sizing: border-box !important;
         display: none; /* Pokaże JS */
         position: relative;
     }
 
-    /* NOWOCZESNE LOGO Ξ W ROGU SYSTEMU */
+    /* NOWOCZESNE LOGO Ξ - TWOJA SYGNATURA */
     .app::after {
-        content: "Ξ"; position: absolute; top: 40px; right: 60px;
-        font-size: 40px; color: var(--white); text-shadow: 0 0 20px var(--acc);
-        opacity: 0.8; animation: logo-float 4s infinite ease-in-out;
+        content: "Ξ"; position: absolute; top: 30px; left: 50%; transform: translateX(-50%);
+        font-size: 50px; color: var(--white); text-shadow: 0 0 25px var(--neon);
+        opacity: 0.9; animation: logo-float 5s infinite ease-in-out;
     }
     @keyframes logo-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 
-    /* TWOJA STRUKTURA LAYOUTU - ROZCIĄGNIĘTA NA CAŁY EKRAN */
+    /* LAYOUT: TRZY FILARY ROZSTAWIONE NA CAŁY EKRAN */
     .layout {
         display: flex !important;
         flex-direction: row !important;
-        gap: 40px !important;
-        width: 100% !important;
         justify-content: space-between !important;
-        align-items: flex-start !important;
+        gap: 30px !important;
+        width: 100% !important;
+        margin-top: 60px;
     }
 
-    /* TWOJE PANELE (LEFT, CENTER, RIGHT) - SZKLANE I NOWOCZESNE */
-    #leftPanel, #centerPanel, #rightPanel, .panel, .section-card {
-        background: var(--dim) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        border-radius: 35px !important;
-        padding: 40px !important;
-        box-shadow: inset 0 0 30px rgba(0,0,0,0.5);
-        transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
-        flex: 1; /* Każdy panel dostaje swoją przestrzeń */
+    /* TWOJE PANELE (LEFT, CENTER, RIGHT) - PANCERNE SZKŁO */
+    #leftPanel, #centerPanel, #rightPanel, .panel {
+        background: rgba(15, 15, 15, 0.8) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 30px !important;
+        padding: 35px !important;
+        box-shadow: inset 0 0 40px #000;
+        transition: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+        flex: 1; /* Równy podział miejsca */
     }
-
-    /* Środkowy panel może być szerszy, jeśli chcesz */
-    #centerPanel { flex: 2 !important; }
+    #centerPanel { flex: 2 !important; } /* Środkowy panel szerszy dla edytora */
 
     #leftPanel:hover, #centerPanel:hover, #rightPanel:hover {
-        border-color: var(--acc) !important;
-        background: rgba(255, 255, 255, 0.08) !important;
-        transform: translateY(-10px);
+        border-color: var(--neon) !important;
+        transform: translateY(-5px);
+        box-shadow: 0 20px 60px rgba(0, 255, 65, 0.05);
     }
 
-    /* TWOJE BIAŁE NAGŁÓWKI - CZYSTE I OSTRE */
-    strong, h2, .small strong, .panel-title {
+    /* BIAŁE NAGŁÓWKI - CZYTELNOŚĆ ABSOLUTNA */
+    strong, h2, .panel-title {
         color: var(--white) !important;
         text-transform: uppercase !important;
-        letter-spacing: 6px !important;
-        font-size: 0.75rem !important;
-        font-weight: 900 !important;
-        border-left: 5px solid var(--acc);
+        letter-spacing: 5px !important;
+        font-size: 0.85rem !important;
+        border-left: 5px solid var(--neon);
         padding-left: 20px;
-        margin-bottom: 30px;
+        margin-bottom: 25px;
         display: block;
-        opacity: 1 !important;
     }
 
-    /* PRZYCISKI - WRESZCIE WIDOCZNE (IMPORT, EKSTRAKCJA, EXCEL) */
+    /* PRZYCISKI - W KOŃCU WIDOCZNE I LUKSUSOWE (IMPORT / EKSTRAKCJA) */
+    .controls { display: flex; flex-direction: column; gap: 15px; width: 100%; }
+
     button, .btn, .filebtn, .controls label {
-        display: inline-block !important;
-        background: var(--white) !important; /* Luksusowa Biel */
+        display: flex !important;
+        align-items: center; justify-content: center;
+        background: var(--white) !important; /* Biel dla najwyższego luksusu */
         color: #000 !important;
         border: none !important;
-        padding: 18px 35px !important;
-        border-radius: 100px !important;
+        padding: 20px 30px !important;
+        border-radius: 15px !important;
         font-weight: 900;
         text-transform: uppercase;
         letter-spacing: 3px;
-        font-size: 0.65rem;
+        font-size: 0.75rem;
         cursor: pointer;
-        transition: 0.3s;
-        box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        width: 100%;
+        transition: 0.3s all;
+        box-sizing: border-box;
     }
 
     button:hover, .filebtn:hover {
-        background: var(--acc) !important;
-        transform: scale(1.05);
-        box-shadow: 0 0 30px var(--acc);
+        background: var(--neon) !important;
+        transform: scale(1.02);
+        box-shadow: 0 0 40px var(--neon);
     }
 
-    /* EDYTOR I LOGI - GŁĘBOKA CZERŃ */
-    #log, #logs, #ocrTextarea, #tableEditor {
+    /* EDYTOR I LOGI - CZARNA GŁĘBIA */
+    #log, #ocrTextarea {
         background: #000 !important;
         border: 1px solid #1a1a1a !important;
-        color: var(--acc) !important;
+        color: var(--neon) !important;
         font-family: 'JetBrains Mono', monospace;
         padding: 25px;
         border-radius: 20px;
-        font-size: 14px;
+        font-size: 15px;
         line-height: 1.8;
         width: 100%;
         box-sizing: border-box;
     }
+    #ocrTextarea { height: 600px; border-left: 5px solid var(--neon) !important; }
 
-    #ocrTextarea { height: 550px; border-left: 5px solid var(--acc) !important; }
-
-    /* MATRIX TŁO - SUBTELNY DODATEK */
-    #matrix-bg { position: fixed; inset: 0; z-index: -1; opacity: 0.1; }
+    /* MATRIX TŁO */
+    #matrix-bg { position: fixed; inset: 0; z-index: -1; opacity: 0.08; }
     }
 
 </style>
