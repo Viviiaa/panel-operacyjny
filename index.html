@@ -7,143 +7,84 @@
 
 <style>
     :root {
-        --acc: #00ff41; /* Twoja neonowa zieleń */
-        --bg: #000000;
-        --glass: rgba(12, 12, 12, 0.95);
-        --border: 1px solid rgba(0, 255, 65, 0.2);
-        --glow: 0 0 30px rgba(0, 255, 65, 0.15);
+        --acc: #00ff41;
+        --dim: rgba(0, 255, 65, 0.15);
+        --glass: rgba(10, 10, 10, 0.95);
+        --glow: 0 0 30px rgba(0, 255, 65, 0.2);
     }
 
     body, html {
-        margin: 0; padding: 0;
-        background: var(--bg);
-        color: var(--acc);
-        font-family: 'Inter', 'Segoe UI', sans-serif;
-        overflow-x: hidden;
-        min-height: 100vh;
+        margin: 0; padding: 0; background: #000; color: var(--acc);
+        font-family: 'Segoe UI', sans-serif; min-height: 100vh; overflow-x: hidden;
     }
 
-    /* --- AVATAR WYROCZNI (CENTRUM TWOJEGO ŚWIATA) --- */
+    /* --- AVATAR Ξ --- */
     .oracle-avatar {
-        width: 100px; height: 100px;
-        margin: 0 auto 30px;
-        position: relative;
-        display: flex; align-items: center; justify-content: center;
+        width: 100px; height: 100px; margin: 0 auto 20px;
+        position: relative; display: flex; align-items: center; justify-content: center;
     }
-
-    /* Rdzeń Avatara */
-    .oracle-avatar::before {
-        content: "Ξ";
-        font-size: 45px;
-        color: var(--acc);
-        text-shadow: 0 0 20px var(--acc);
-        z-index: 2;
-        animation: breath 4s infinite ease-in-out;
+    .oracle-avatar::before { content: "Ξ"; font-size: 45px; text-shadow: 0 0 20px var(--acc); animation: pulse 3s infinite; }
+    .oracle-avatar::after {
+        content: ""; position: absolute; inset: -10px; border: 2px solid var(--acc);
+        border-radius: 50%; border-top-color: transparent; border-bottom-color: transparent;
+        animation: rotate 6s linear infinite; opacity: 0.5;
     }
-
-    /* Obracające się pierścienie geometrii */
-    .avatar-ring {
-        position: absolute;
-        border: 1px solid var(--acc);
-        border-radius: 50%;
-        opacity: 0.3;
-        animation: rotate 10s linear infinite;
-    }
-    .ring-1 { inset: -5px; border-style: dashed; }
-    .ring-2 { inset: -15px; border-width: 2px; border-color: var(--dim); opacity: 0.1; animation-duration: 15s; animation-direction: reverse; }
-
     @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-    @keyframes breath { 0%, 100% { opacity: 0.5; transform: scale(0.95); } 50% { opacity: 1; transform: scale(1.05); } }
+    @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.1); opacity: 1; } }
 
-    /* --- ARCHITEKTURA INTERFEJSU --- */
+    /* --- GŁÓWNA KONSTRUKCJA --- */
     .app {
-        max-width: 1500px;
-        margin: 50px auto;
-        padding: 50px;
-        background: var(--glass);
-        backdrop-filter: blur(40px); /* Maksymalny efekt szkła */
-        border: var(--border);
-        border-radius: 40px; /* Bardziej obłe, nowoczesne narożniki */
-        box-shadow: 0 50px 150px rgba(0,0,0,1);
-        display: none; /* Pokażemy po logowaniu */
+        max-width: 1550px; margin: 40px auto; padding: 40px;
+        background: var(--glass); backdrop-filter: blur(40px);
+        border: 1px solid var(--dim); border-radius: 30px;
+        display: none; flex-direction: column; gap: 25px; box-shadow: 0 50px 100px #000;
     }
 
-    .main-grid {
-        display: grid;
-        grid-template-columns: 420px 1fr 420px;
-        gap: 30px;
+    /* --- TO PRZYWRACA PRZYCISKI IMPORTU (TWOJA KLASA .CONTROLS) --- */
+    .controls {
+        display: flex; flex-wrap: wrap; gap: 15px; align-items: center;
+        padding: 20px; background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--dim); border-radius: 15px; margin-bottom: 10px;
     }
 
-    /* PANELE - "CIĘTE SZKŁO" */
-    .panel {
-        background: rgba(0,0,0,0.6);
-        border: 1px solid rgba(0, 255, 65, 0.05);
-        border-radius: 20px;
-        padding: 30px;
-        position: relative;
-        transition: 0.5s;
+    /* TWOJE PRZYCISKI I ETYKIETY (FILEBTN, BTN) */
+    .filebtn, .btn, button {
+        background: linear-gradient(180deg, #051505 0%, #000 100%) !important;
+        color: var(--acc) !important; border: 1px solid var(--acc) !important;
+        padding: 12px 25px; border-radius: 50px; cursor: pointer;
+        font-weight: bold; text-transform: uppercase; letter-spacing: 2px;
+        font-size: 0.7rem; transition: 0.3s; display: inline-block;
     }
-    .panel:hover { border-color: var(--acc); box-shadow: var(--glow); }
+    .filebtn:hover, .btn:hover, button:hover {
+        background: var(--acc) !important; color: #000 !important; box-shadow: var(--glow); transform: translateY(-2px);
+    }
 
-    /* NAGŁÓWKI - BIAŁY MINIMALIZM */
+    /* TRZYKOLUMNOWY LAYOUT */
+    .layout {
+        display: grid; grid-template-columns: 400px 1fr 400px; gap: 20px; align-items: start;
+    }
+
+    /* SZKLANE PANELE */
+    .panel { background: rgba(0, 0, 0, 0.6); border: 1px solid var(--dim); border-radius: 20px; padding: 25px; }
+    
+    /* BIAŁE NAGŁÓWKI */
     .small strong, h2 {
-        color: #ffffff !important;
-        font-size: 0.7rem;
-        letter-spacing: 5px;
-        text-transform: uppercase;
-        border-bottom: 1px solid var(--dim);
-        padding-bottom: 15px;
-        margin-bottom: 20px;
-        display: block;
-        opacity: 0.8;
+        color: #fff !important; font-size: 0.75rem; letter-spacing: 4px;
+        text-transform: uppercase; border-bottom: 1px solid var(--dim);
+        padding-bottom: 12px; margin-bottom: 15px; display: block;
     }
 
-    /* TERMINAL I EDYTOR - CZYSTA FORMA */
-    #log, #ocrTextarea, #tableEditor {
-        background: #000 !important;
-        border: 1px solid #111 !important;
-        color: var(--acc) !important;
-        font-family: 'Courier New', monospace;
-        font-size: 14px;
-        padding: 20px;
-        border-radius: 15px;
-        line-height: 1.7;
+    /* EDYTOR I STATUSY */
+    #log, #ocrTextarea, #tableEditor, #sheetslist {
+        background: #000 !important; border: 1px solid #111 !important;
+        color: var(--acc) !important; font-family: 'Courier New', monospace;
+        padding: 15px; border-radius: 12px;
     }
+    .pilli, .pill, .chip { font-size: 10px; border: 1px solid var(--dim); padding: 5px 12px; border-radius: 4px; color: #fff; background: #000; }
 
-    /* PRZYCISKI - GEOMETRYCZNA PRECYZJA */
-    button, .btn {
-        background: transparent !important;
-        border: 1px solid var(--acc) !important;
-        color: var(--acc) !important;
-        padding: 15px 30px;
-        border-radius: 50px; /* Okrągłe przyciski "Premium" */
-        text-transform: uppercase;
-        font-weight: bold;
-        letter-spacing: 2px;
-        font-size: 0.7rem;
-        cursor: pointer;
-        transition: 0.4s;
-    }
-    button:hover {
-        background: var(--acc) !important;
-        color: #000 !important;
-        box-shadow: 0 0 30px var(--acc);
-    }
-
-    /* EKRAN LOGOWANIA - TYLKO TY I AVATAR */
-    #loginOverlay {
-        position: fixed; inset: 0; background: #000; z-index: 10000;
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
-    }
-    #accessCode {
-        background: transparent; border: none; border-bottom: 2px solid var(--acc);
-        color: var(--acc); font-size: 3rem; text-align: center; width: 400px;
-        outline: none; margin-bottom: 40px; letter-spacing: 10px;
-    }
-
-    /* STATUSY I STOPKA */
-    .pill, .chip { font-size: 10px; border: 1px solid var(--dim); padding: 5px 15px; border-radius: 5px; color: #fff; }
-    .footer { margin-top: 40px; border-top: 1px solid var(--dim); padding-top: 20px; font-size: 11px; opacity: 0.3; }
+    /* BRAMA DOSTĘPU */
+    #loginOverlay { position: fixed; inset: 0; background: #000; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    #accessCode { background: transparent; border: none; border-bottom: 2px solid var(--acc); color: var(--acc); font-size: 2.5rem; text-align: center; width: 350px; outline: none; margin-bottom: 30px; letter-spacing: 8px; }
 
     }
 
