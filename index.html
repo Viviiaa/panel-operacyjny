@@ -897,9 +897,10 @@ clearAllBtn.addEventListener('click', ()=>{ files=[]; resetUI(); filesInput.valu
 /* Init */
 resetUI();
 log('Gotowy — wybierz pliki, aby rozpocząć.');
-  function checkAccess() {
+
+function checkAccess() {
     const code = document.getElementById('accessCode').value;
-    const correctCode = "cieszkowska1995"; // <--- Tu wpisz swoje tajne hasło
+    const correctCode = "cieszkowska1995"; 
 
     if (code === correctCode) {
         document.getElementById('loginOverlay').style.display = 'none';
@@ -910,17 +911,20 @@ log('Gotowy — wybierz pliki, aby rozpocząć.');
     }
 }
 
-// Pozwala na zatwierdzenie hasła klawiszem Enter
-document.getElementById('accessCode').addEventListener('keypress', function (e) {
+function forceExport() {
+    document.getElementById('errorOverlay').style.display = 'none';
+    log("OSTRZEŻENIE: Użytkownik wymusił eksport danych mimo anomalii.");
+    // Tu powinien być Twój kod generujący plik XLSX
+}
+
+// Obsługa Entera (poza funkcjami!)
+document.getElementById('accessCode')?.addEventListener('keypress', function (e) {
     if (e.key === 'Enter') {
         checkAccess();
     }
 });
 
-    function forceExport() {
-    document.getElementById('errorOverlay').style.display = 'none';
-    log("OSTRZEŻENIE: Użytkownik wymusił eksport danych mimo anomalii.");
-    
+
 </script>
 </body>
 </html>
