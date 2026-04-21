@@ -227,7 +227,7 @@
         <div class="progress" style="flex:1"><i id="progFill"></i></div>
       </div>
 
-        <div style="margin-top:12px">
+      <div style="margin-top:12px">
         <div class="small"><strong>EDYCJA STRUKTURY DANYCH PRZED EKSPORTEM</strong></div>
         <div class="table-edit" id="tableEditor" style="margin-top:8px;min-height:160px"></div>
       </div>
@@ -297,20 +297,7 @@ let autoFix = true;
 function log(msg){ const time = new Date().toLocaleTimeString(); logEl.textContent += `[${time}] ${msg}\\n`; logEl.scrollTop = logEl.scrollHeight; }
 function setProgress(p){ progFill.style.width = Math.max(0,Math.min(100,p)) + '%'; }
 function setOcrStatus(s){ ocrStatus.textContent = 'OCR: ' + s; }
-function resetUI() {
-    if(typeof fileList !== 'undefined') fileList.innerHTML = '';
-    if(typeof sheetsList !== 'undefined') sheetsList.innerHTML = '';
-    
-    // Czyścimy Twój nowy, czarny edytor tekstowy
-    const ocrArea = document.getElementById('ocrTextarea');
-    if(ocrArea) ocrArea.value = '';
-    
-    // Resetujemy widok płótna (canvas)
-    const canvasArea = document.getElementById('canvasArea');
-    if(canvasArea) canvasArea.innerHTML = '<div class="small">OCZEKIWANIE NA WYBÓR OBIEKTU DO WIZUALIZACJI...</div>';
-    
-    if(typeof fileCount !== 'undefined') fileCount.textContent = 'STATUS: OCZEKIWANIE NA KOLEJKĘ';
-}
+function resetUI(){ fileList.innerHTML=''; tableEditor.innerHTML=''; sheetsList.innerHTML=''; canvasArea.innerHTML='<div class="small">Wybierz plik i stronę, aby zobaczyć podgląd</div>'; fileCount.textContent='Brak plików'; processedSheets=[]; currentView={fileIndex:null,pageIndex:0,canvas:null,imageData:null,sheetIndex:null}; setProgress(0); logEl.textContent=''; }
 
 /* Load Tesseract worker once */
 async function getTesseractWorker() {
@@ -578,18 +565,18 @@ function normalizeRows(rows){
 
 /* OCR flow for current canvas */
 async function runOCROnCurrentCanvas(opts={binarize:true,scale:1.6}){
-  if(!currentView.canvas || !currentView.imageData) { setOcrStatus('brak obrazu'); return null; }
+  if(!currentView.canvas || !currentView.imageData) { setOcrStatus('brak obrazu'); return null; }u
   setOcrStatus('inicjalizacja');
   const worker = await getTesseractWorker();
   setOcrStatus('preprocessing');
   const preDataURL = preprocessImageData(currentView.imageData, {scale: opts.scale, binarize: opts.binarize, contrast: 1.3});
   setProgress(5);
   setOcrStatus('rozpoznawanie');
-  const ret = await worker.recognize(preDataURL);
+  const res = await worker.recognize(preDataURL);
   document.getElementById('ocrTextarea').value = ret.data.text; 
-  processedSheets.push({ name: file.currentView.name, rows: ret.data.text });
+  processedSheets.push({ name: file.name, rows: ret.data.text });
   setProgress(90);
-  const text = ret.data.text || '';
+  const text = res.data.text || '';
   setOcrStatus('gotowe');
   log('OCR zakończone — długość tekstu: ' + text.length);
   // convert text to table heuristically: split lines, then split columns by multiple spaces or tab, or by detected vertical lines
@@ -741,22 +728,22 @@ function showSheet(sheetIndex){
 }
 
 /* Apply changes from editor back to processedSheets */
-/* ZAPISZ KOREKTĘ (MANUAL OVERRIDE) */
-applyChangesBtn.addEventListener('click', () => {
-    const idx = currentView.sheetIndex;
-    if (idx === null || idx === undefined) { log('STATUS: Brak aktywnego datasetu do zapisu.'); return; }
-    
-    // Pobieramy tekst z Twojego czarnego edytora
-    const rawText = document.getElementById('ocrTextarea').value;
-    
-    // Zamieniamy tekst z powrotem na wiersze dla Excela
-    const newRows = rawText.split('\n').map(line => line.trim().split(/\s{2,}/));
-    
-    // Nadpisujemy dane w pamięci systemu
-    processedSheets[idx].rows = newRows;
-    
-    renderSheetsList();
-    log('PROTOKÓŁ: Korekta manualna zapisana dla obiektu: ' + processedSheets[idx].name);
+applyChangesBtn.addEventListener('click', ()=>{
+  const idx = currentView.sheetIndex;
+  if(idx===null || idx===undefined) { log('Brak otwartej tabeli do zatwierdzenia'); return; }
+  const table = tableEditor.querySelector('table.editable');
+  if(!table) return;
+  const rows = [];
+  const ths = Array.from(table.querySelectorAll('thead th')).map(th=>cleanCellText(th.textContent||''));
+  rows.push(ths);
+  const trs = table.querySelectorAll('tbody tr');
+  trs.forEach(tr=>{
+    const tds = Array.from(tr.querySelectorAll('td')).map(td=>cleanCellText(td.textContent||''));
+    rows.push(tds);
+  });
+  processedSheets[idx].rows = rows;
+  renderSheetsList();
+  log('Zatwierdzono zmiany w arkuszu: ' + processedSheets[idx].name);
 });
 
 /* Re-run OCR on current canvas (with same settings) */
