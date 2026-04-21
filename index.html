@@ -1,430 +1,655 @@
-<html>
 <!doctype html>
 <html lang="pl">
 <head>
-  <meta charset="utf-8" />
-  <title>OCR -> Excel (zoptymalizowane, client-side)</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <style>
-    body{font-family:system-ui,Segoe UI,Roboto,Arial;margin:18px}
-    .drop{border:2px dashed #888;padding:22px;text-align:center;border-radius:8px}
-    .files{margin-top:12px}
-    button{margin-top:12px;padding:8px 12px}
-    .log{white-space:pre-wrap;background:#f7f7f7;padding:10px;border-radius:6px;margin-top:12px;max-height:220px;overflow:auto}
-    .progress{height:14px;background:#eee;border-radius:8px;overflow:hidden;margin-top:8px}
-    .progress > i{display:block;height:100%;background:linear-gradient(90deg,#4caf50,#8bc34a);width:0%}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Konwerter → Excel (dark) — zoptymalizowany</title>
+
+<style>
+  :root{--bg:#07070a;--card:#0f1720;--muted:#94a3b8;--accent:#60a5fa;--glass:rgba(255,255,255,0.03);}
+  html,body{height:100%;margin:0;font-family:Inter,Segoe UI,Helvetica,Arial;background:linear-gradient(180deg,#020305 0%, #07101a 100%);color:#e6eef6}
+  .app{max-width:1200px;margin:26px auto;padding:18px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);border:1px solid rgba(255,255,255,0.03)}
+  header{display:flex;align-items:center;gap:14px}
+  .logo{width:52px;height:52px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#7dd3fc);display:flex;align-items:center;justify-content:center;color:#012; font-weight:700}
+  h1{margin:0;font-size:18px}
+  .lead{color:var(--muted);margin:0;font-size:13px}
+  .controls{display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap}
+  .filebtn{background:linear-gradient(90deg,#0ea5e9,#7dd3fc);color:#022;padding:10px 14px;border-radius:10px;cursor:pointer;border:none;font-weight:600}
+  input[type=file]{display:none}
+  .btn{background:var(--card);color:var(--accent);padding:8px 12px;border-radius:10px;border:1px solid rgba(125,211,252,0.06);cursor:pointer}
+  .pill{padding:6px 8px;background:rgba(255,255,255,0.02);border-radius:999px;color:var(--muted);font-size:13px}
+  .layout{display:grid;grid-template-columns: 420px 1fr 360px;gap:14px;margin-top:14px}
+  .panel{background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);padding:12px;border-radius:10px;min-height:300px;overflow:auto}
+  .small{font-size:13px;color:var(--muted)}
+  .file-item{display:flex;align-items:center;justify-content:space-between;padding:8px;border-radius:8px;margin-bottom:8px;background:rgba(255,255,255,0.01)}
+  .file-meta{display:flex;gap:8px;align-items:center}
+  .file-name{font-weight:600}
+  .stage{font-size:13px;color:var(--muted)}
+  .progress{height:8px;background:rgba(255,255,255,0.03);border-radius:999px;overflow:hidden;margin-top:8px}
+  .progress > i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--accent),#7dd3fc);transition:width 250ms}
+  .log{font-size:13px;color:var(--muted);white-space:pre-wrap}
+  .canvas-preview{width:100%;background:#020409;border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:8px;align-items:center}
+  canvas{max-width:100%;border-radius:6px;background:#000}
+  .table-edit{width:100%;overflow:auto;border-radius:6px;background:rgba(255,255,255,0.01);padding:6px}
+  table.editable{width:100%;border-collapse:collapse}
+  table.editable th, table.editable td{border:1px solid rgba(255,255,255,0.03);padding:6px 8px;font-size:13px;color:#e6eef6}
+  table.editable th{background:rgba(255,255,255,0.02);position:sticky;top:0;z-index:2}
+  td[contenteditable]{outline:none}
+  .controls-file-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .chip{padding:6px 8px;border-radius:999px;background:rgba(255,255,255,0.02);color:var(--muted);font-size:13px}
+  .footer{display:flex;justify-content:space-between;align-items:center;margin-top:12px;color:var(--muted);font-size:13px}
+  .warn{color:#fbbf24}
+</style>
+
+<!-- Libraries -->
+<script src="https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+<script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+
 </head>
 <body>
-  <h3>OCR do Excel — zoptymalizowane (client-side)</h3>
+<div class="app" role="main">
+  <header>
+    <div class="logo">X</div>
+    <div>
+      <h1>Konwerter plików → Excel (optymalizowany)</h1>
+      <p class="lead">PDF (renderowanie stron) • obrazy • DOCX — OCR z preprocessingiem, detekcja tabel, pełna edycja przed eksportem</p>
+    </div>
+  </header>
 
-  <div class="drop" id="drop">Upuść plik PDF/PNG/JPG tutaj lub kliknij, aby wybrać
-    <input id="fileInput" type="file" accept=".pdf,image/*" style="display:none" multiple>
+  <div class="controls">
+    <label class="filebtn">Wybierz pliki
+      <input id="files" type="file" multiple accept=".pdf,image/*,.png,.jpg,.jpeg,.docx,.doc" />
+    </label>
+    <button id="processAll" class="btn">Przetwórz wybrane</button>
+    <div class="pill" id="fileCount">Brak plików</div>
+    <div class="chip" id="langChip">Język OCR: auto</div>
   </div>
 
-  <div class="files" id="files"></div>
-  <div style="margin-top:8px">
-    <button id="startBtn">Przetwórz i pobierz</button>
-    <button id="cancelBtn" disabled>Przerwij</button>
+  <div class="layout">
+    <div class="panel" id="leftPanel">
+      <div class="small"><strong>Pliki</strong></div>
+      <div id="fileList" style="margin-top:8px"></div>
+      <div style="margin-top:8px;">
+        <div class="small"><strong>Szczegóły przetwarzania</strong></div>
+        <div id="log" class="log" style="margin-top:8px;max-height:220px;overflow:auto"></div>
+      </div>
+    </div>
+
+    <div class="panel" id="centerPanel">
+      <div class="small"><strong>Podgląd strony / obraz</strong></div>
+      <div class="canvas-preview" id="canvasArea">
+        <div class="small">Wybierz plik i stronę, aby zobaczyć podgląd</div>
+      </div>
+
+      <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <div class="pill" id="pageInfo">Strona: -</div>
+        <button id="prevPage" class="btn">◀</button>
+        <button id="nextPage" class="btn">▶</button>
+        <div class="pill" id="ocrStatus">OCR: oczekuje</div>
+        <div class="progress" style="flex:1"><i id="progFill"></i></div>
+      </div>
+
+      <div style="margin-top:12px">
+        <div class="small"><strong>Wykryta tabela — edycja</strong></div>
+        <div class="table-edit" id="tableEditor" style="margin-top:8px;min-height:160px"></div>
+      </div>
+
+      <div style="margin-top:8px;display:flex;gap:8px">
+        <button id="applyChanges" class="btn">Zatwierdź zmiany</button>
+        <button id="reRunOCR" class="btn">Ponownie OCR z ustawieniami</button>
+        <div class="chip" id="autoFixChip">Auto-fix: włączony</div>
+      </div>
+    </div>
+
+    <div class="panel" id="rightPanel">
+      <div class="small"><strong>Eksport</strong></div>
+      <div style="margin-top:8px">
+        <div class="small">Lista arkuszy do eksportu (możesz edytować nazwę arkusza)</div>
+        <div id="sheetsList" style="margin-top:8px"></div>
+      </div>
+
+      <div style="margin-top:12px;display:flex;gap:8px;flex-direction:column">
+        <button id="exportXLSX" class="btn">Eksportuj do .xlsx</button>
+        <button id="downloadJSON" class="btn">Pobierz JSON (podgląd)</button>
+        <button id="clearAll" class="btn">Wyczyść wszystko</button>
+      </div>
+
+      <div style="margin-top:12px" class="small warn">Uwaga: wszystko działa lokalnie w przeglądarce</div>
+    </div>
   </div>
 
-  <div class="progress" id="progress"><i></i></div>
-  <div class="log" id="log"></div>
+  <div class="footer">
+    <div class="small">Data: April 21, 2026</div>
+    <div class="small">Optymalizacje: pdf.js rendering, preprocessing obrazu, heurystyczna detekcja linii tabeli, edytor</div>
+  </div>
+</div>
 
 <script>
-/*
-  Zasady optymalizacji zastosowane w tym pliku:
-  - lazy-load bibliotek (Tesseract.js, pdf.js, OpenCV.js, SheetJS) tylko przy starcie
-  - worker OCR + worker OpenCV (jeśli OffscreenCanvas dostępny)
-  - adaptive scaling: obrazy skalowane do optymalnej rozdzielczości (ok. 300 DPI)
-  - batch processing: przetwarzanie stron/obrazów partiami
-  - możliwość anulowania
-  - minimalne użycie pamięci: zwalnianie canvasów i obiektów po użyciu
-*/
-
-const drop = document.getElementById('drop');
-const fileInput = document.getElementById('fileInput');
-const filesDiv = document.getElementById('files');
-const startBtn = document.getElementById('startBtn');
-const cancelBtn = document.getElementById('cancelBtn');
+/* Globals */
+const filesInput = document.getElementById('files');
+const fileCount = document.getElementById('fileCount');
+const fileList = document.getElementById('fileList');
 const logEl = document.getElementById('log');
-const progressBar = document.querySelector('#progress > i');
+const processAllBtn = document.getElementById('processAll');
+const canvasArea = document.getElementById('canvasArea');
+const progFill = document.getElementById('progFill');
+const pageInfo = document.getElementById('pageInfo');
+const prevPageBtn = document.getElementById('prevPage');
+const nextPageBtn = document.getElementById('nextPage');
+const ocrStatus = document.getElementById('ocrStatus');
+const tableEditor = document.getElementById('tableEditor');
+const applyChangesBtn = document.getElementById('applyChanges');
+const reRunOCRBtn = document.getElementById('reRunOCR');
+const sheetsList = document.getElementById('sheetsList');
+const exportBtn = document.getElementById('exportXLSX');
+const downloadJSONBtn = document.getElementById('downloadJSON');
+const clearAllBtn = document.getElementById('clearAll');
+const langChip = document.getElementById('langChip');
+const autoFixChip = document.getElementById('autoFixChip');
 
 let files = [];
-let abortFlag = false;
-let libs = {}; // will hold loaded libs
+let processedSheets = []; // {fileIndex, pageIndex, name, rows}
+let currentView = {fileIndex:null, pageIndex:0, canvas:null, imageData:null, sheetIndex:null};
+let tesseractWorker = null;
+let ocrLang = 'pol+eng'; // auto: attempt pol then eng
+let autoFix = true;
 
-function log(...args){ logEl.textContent += args.join(' ') + '\\n'; logEl.scrollTop = logEl.scrollHeight; }
-function setProgress(p){ progressBar.style.width = Math.max(0, Math.min(100, Math.round(p*100))) + '%'; }
+/* Utilities */
+function log(msg){ const time = new Date().toLocaleTimeString(); logEl.textContent += `[${time}] ${msg}\\n`; logEl.scrollTop = logEl.scrollHeight; }
+function setProgress(p){ progFill.style.width = Math.max(0,Math.min(100,p)) + '%'; }
+function setOcrStatus(s){ ocrStatus.textContent = 'OCR: ' + s; }
+function resetUI(){ fileList.innerHTML=''; tableEditor.innerHTML=''; sheetsList.innerHTML=''; canvasArea.innerHTML='<div class="small">Wybierz plik i stronę, aby zobaczyć podgląd</div>'; fileCount.textContent='Brak plików'; processedSheets=[]; currentView={fileIndex:null,pageIndex:0,canvas:null,imageData:null,sheetIndex:null}; setProgress(0); logEl.textContent=''; }
 
-drop.addEventListener('click', ()=>fileInput.click());
-fileInput.addEventListener('change', e => addFiles(e.target.files));
-drop.addEventListener('dragover', e => { e.preventDefault(); drop.style.borderColor='#444'; });
-drop.addEventListener('dragleave', e => { e.preventDefault(); drop.style.borderColor='#888'; });
-drop.addEventListener('drop', e => { e.preventDefault(); drop.style.borderColor='#888'; addFiles(e.dataTransfer.files); });
-
-function addFiles(list){
-  for(const f of list){
-    files.push(f);
-    const el = document.createElement('div');
-    el.textContent = f.name + ' (' + Math.round(f.size/1024) + ' KB)';
-    filesDiv.appendChild(el);
-  }
-  log('Dodano', list.length, 'plik(ów).');
+/* Load Tesseract worker once */
+async function getTesseractWorker(){
+  if(tesseractWorker) return tesseractWorker;
+  tesseractWorker = Tesseract.createWorker({
+    logger: m => {
+      if(m.status === 'recognizing text' && m.progress) setProgress(10 + Math.round(m.progress*70));
+      log('Tesseract: ' + (m.status || '') + (m.progress ? ' ' + Math.round(m.progress*100)+'%':'' ));
+    }
+  });
+  await tesseractWorker.load();
+  // try multiple langs; using 'pol+eng' for robustness
+  await tesseractWorker.loadLanguage(ocrLang).catch(()=>tesseractWorker.loadLanguage('eng'));
+  await tesseractWorker.initialize(ocrLang).catch(()=>tesseractWorker.initialize('eng'));
+  // set psm AUTO
+  await tesseractWorker.setParameters({ tessedit_pageseg_mode: 1 });
+  return tesseractWorker;
 }
 
-// --- lazy load helper
-async function loadScriptOnce(url, globalName){
-  if(libs[url]) return libs[url];
-  log('Ładowanie', url);
-  return new Promise((resolve, reject) => {
-    const s = document.createElement('script');
-    s.src = url;
-    s.onload = () => { libs[url] = window[globalName] || true; resolve(libs[url]); };
-    s.onerror = (e) => reject(e);
-    document.head.appendChild(s);
+/* File selection */
+filesInput.addEventListener('change', (e)=>{
+  files = Array.from(e.target.files);
+  fileCount.textContent = files.length + ' plik(ów)';
+  renderFileList();
+  log('Wybrane pliki: ' + files.map(f=>f.name).join(', '));
+});
+
+/* Render file list with per-file controls */
+function renderFileList(){
+  fileList.innerHTML = '';
+  files.forEach((f,idx)=>{
+    const div = document.createElement('div');
+    div.className='file-item';
+    const meta = document.createElement('div'); meta.className='file-meta';
+    const name = document.createElement('div'); name.className='file-name'; name.textContent = f.name;
+    const size = document.createElement('div'); size.className='small'; size.textContent = (f.size/1024|0) + ' KB';
+    meta.appendChild(name); meta.appendChild(size);
+    const actions = document.createElement('div');
+    const viewBtn = document.createElement('button'); viewBtn.className='btn'; viewBtn.textContent='Podgląd';
+    viewBtn.onclick = ()=>openFilePreview(idx);
+    const removeBtn = document.createElement('button'); removeBtn.className='btn'; removeBtn.textContent='Usuń';
+    removeBtn.onclick = ()=>{ files.splice(idx,1); renderFileList(); fileCount.textContent = files.length + ' plik(ów)'; }
+    actions.appendChild(viewBtn); actions.appendChild(removeBtn);
+    div.appendChild(meta); div.appendChild(actions);
+    fileList.appendChild(div);
   });
 }
 
-// --- feature detection
-const supportsOffscreen = typeof OffscreenCanvas !== 'undefined';
-const supportsWorkers = typeof Worker !== 'undefined';
-
-// --- worker code strings (minimal) ------------------------------------------------
-// OCR worker will be created from blob; it lazy-loads tesseract core via CDN path passed in init
-const ocrWorkerCode = `
-self.onmessage = async (ev) => {
-  const {cmd, payload} = ev.data;
-  if(cmd === 'init'){
-    importScripts(payload.tesseractUrl);
-    // create worker inside worker (tesseract provides createWorker)
-    self.worker = await Tesseract.createWorker({logger: m => self.postMessage({type:'log', data:m})});
-    await self.worker.load();
-    await self.worker.loadLanguage(payload.lang || 'eng');
-    await self.worker.initialize(payload.lang || 'eng');
-    self.postMessage({type:'ready'});
-  } else if(cmd === 'recognize'){
-    try{
-      const {imageData, id} = payload;
-      // recognize accepts ImageData or dataURL
-      const res = await self.worker.recognize(imageData);
-      self.postMessage({type:'result', id, data: res.data});
-    }catch(e){
-      self.postMessage({type:'error', id, error: e.toString()});
+/* Open preview (for PDF: render first page via pdf.js; for image: show image; for docx: try to extract first table preview) */
+async function openFilePreview(index){
+  const f = files[index];
+  currentView.fileIndex = index;
+  currentView.pageIndex = 0;
+  tableEditor.innerHTML = '';
+  setProgress(0);
+  canvasArea.innerHTML = '';
+  if(!f) return;
+  const ext = (f.name.split('.').pop()||'').toLowerCase();
+  if(ext === 'pdf'){
+    // render pages via pdf.js
+    const arrayBuffer = await f.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({data:arrayBuffer}).promise;
+    currentView.totalPages = pdf.numPages;
+    log(`PDF: ${f.name} — strony: ${pdf.numPages}`);
+    // render page
+    await renderPdfPage(pdf, 1);
+    pageInfo.textContent = 'Strona: 1 / ' + pdf.numPages;
+    // attach navigation handlers
+    prevPageBtn.onclick = async ()=>{ if(currentView.pageIndex>1){ await renderPdfPage(pdf, currentView.pageIndex-1); pageInfo.textContent = 'Strona: ' + currentView.pageIndex + ' / ' + pdf.numPages; } };
+    nextPageBtn.onclick = async ()=>{ if(currentView.pageIndex<pdf.numPages){ await renderPdfPage(pdf, currentView.pageIndex+1); pageInfo.textContent = 'Strona: ' + currentView.pageIndex + ' / ' + pdf.numPages; } };
+  } else if(['png','jpg','jpeg','bmp','webp'].includes(ext)){
+    const dataURL = await readFileAsDataURL(f);
+    await renderImageToCanvas(dataURL);
+    pageInfo.textContent = 'Obraz';
+    prevPageBtn.onclick = ()=>{};
+    nextPageBtn.onclick = ()=>{};
+  } else if(ext === 'docx'){
+    // parse docx tables and show first table if exists
+    const arr = await parseDocxTables(f);
+    if(arr.length){
+      // show first table as editable
+      processedSheets = processedSheets.filter(s=>s.fileIndex!==index); // remove old
+      arr.forEach((tbl,i)=>{
+        processedSheets.push({fileIndex:index, pageIndex:0, name: f.name + ' - table' + (i+1), rows: normalizeRows(tbl.rows)});
+      });
+      renderSheetsList();
+      showSheet(processedSheets.findIndex(s=>s.fileIndex===index));
+    } else {
+      canvasArea.innerHTML = '<div class="small">Brak tabel w docx.</div>';
     }
-  } else if(cmd === 'terminate'){
-    if(self.worker) await self.worker.terminate();
-    self.postMessage({type:'terminated'});
-    self.close();
-  }
-};
-`;
-
-// OpenCV worker: receives ImageData, runs deskew + adaptive threshold + optional table line detection, returns processed ImageData
-const cvWorkerCode = `
-self.onmessage = async (ev) => {
-  const {cmd, payload} = ev.data;
-  if(cmd === 'init'){
-    importScripts(payload.opencvUrl);
-    // wait until cv is ready
-    const waitFor = () => new Promise(r => {
-      const check = () => { if(self.cv && self.cv.Mat) r(); else setTimeout(check, 50); };
-      check();
-    });
-    await waitFor();
-    self.postMessage({type:'ready'});
-  } else if(cmd === 'process'){
-    try{
-      const {imageData, id, options} = payload;
-      const cv = self.cv;
-      // create mat from ImageData
-      const src = cv.matFromImageData(imageData);
-      let gray = new cv.Mat();
-      cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY, 0);
-      // resize to target width if needed
-      const maxDim = options.maxDim || 2000;
-      if(Math.max(gray.cols, gray.rows) > maxDim){
-        const scale = maxDim / Math.max(gray.cols, gray.rows);
-        const dsize = new cv.Size(Math.round(gray.cols*scale), Math.round(gray.rows*scale));
-        let tmp = new cv.Mat();
-        cv.resize(gray, tmp, dsize, 0, 0, cv.INTER_AREA);
-        gray.delete(); gray = tmp;
-      }
-      // denoise
-      cv.fastNlMeansDenoising(gray, gray, 10, 7, 21);
-      // deskew: compute angle via moments on edges
-      let edges = new cv.Mat();
-      cv.Canny(gray, edges, 50, 150);
-      let lines = new cv.Mat();
-      cv.HoughLinesP(edges, lines, 1, Math.PI/180, 100, Math.round(gray.cols/4), 20);
-      let angle = 0;
-      if(lines.rows > 0){
-        let sum=0, cnt=0;
-        for(let i=0;i<lines.rows;i++){
-          const x1 = lines.data32S[i*4], y1 = lines.data32S[i*4+1];
-          const x2 = lines.data32S[i*4+2], y2 = lines.data32S[i*4+3];
-          const a = Math.atan2(y2-y1, x2-x1) * 180/Math.PI;
-          if(Math.abs(a) < 45){ sum += a; cnt++; }
-        }
-        if(cnt>0) angle = sum/cnt;
-      }
-      if(Math.abs(angle) > 0.1){
-        const center = new cv.Point(gray.cols/2, gray.rows/2);
-        const M = cv.getRotationMatrix2D(center, angle, 1);
-        let rotated = new cv.Mat();
-        cv.warpAffine(gray, rotated, M, new cv.Size(gray.cols, gray.rows), cv.INTER_LINEAR, cv.BORDER_CONSTANT, new cv.Scalar(255,255,255,255));
-        gray.delete(); gray = rotated;
-      }
-      // adaptive threshold
-      let dst = new cv.Mat();
-      cv.adaptiveThreshold(gray, dst, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 31, 10);
-      // optional: detect table lines and return mask (not implemented fully here to keep worker small)
-      const out = new ImageData(new Uint8ClampedArray(dst.data), dst.cols, dst.rows);
-      src.delete(); gray.delete(); edges.delete(); lines.delete(); dst.delete();
-      self.postMessage({type:'processed', id, imageData: out}, [out.data.buffer]);
-    }catch(e){
-      self.postMessage({type:'error', error: e.toString()});
-    }
-  }
-};
-`;
-
-// create worker from code string
-function createWorkerFromCode(code){
-  const blob = new Blob([code], {type:'application/javascript'});
-  const url = URL.createObjectURL(blob);
-  const w = new Worker(url);
-  return w;
-}
-
-// --- helper: convert canvas to ImageData (with OffscreenCanvas fallback)
-function canvasToImageData(canvas){
-  if(canvas.transferControlToOffscreen){
-    // OffscreenCanvas path: draw already on canvas; get ImageData
-    const ctx = canvas.getContext('2d');
-    return ctx.getImageData(0,0,canvas.width, canvas.height);
+  } else if(ext === 'doc'){
+    const text = await f.text();
+    canvasArea.innerHTML = '<div class="small">Plik .doc (obrabiany jako tekst). Podgląd pierwszych linii:</div><pre style="white-space:pre-wrap;margin-top:8px;color:var(--muted)">' + text.slice(0,2000) + '</pre>';
   } else {
-    const ctx = canvas.getContext('2d');
-    return ctx.getImageData(0,0,canvas.width, canvas.height);
+    canvasArea.innerHTML = '<div class="small">Typ pliku nieobsługiwany do podglądu — użyj przycisku "Przetwórz wybrane" aby spróbować OCR.</div>';
   }
 }
 
-// --- adaptive scaling: target DPI ~300 for OCR quality, but limit max pixels
-function drawImageToCanvas(imgBitmap, maxDim=2000){
-  const scale = Math.min(1, maxDim / Math.max(imgBitmap.width, imgBitmap.height));
+/* Read file helpers */
+function readFileAsDataURL(file){ return new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=rej; fr.readAsDataURL(file); }); }
+function readFileAsArrayBuffer(file){ return new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=rej; fr.readAsArrayBuffer(file); }); }
+
+/* PDF rendering with canvas and basic image preprocessing */
+async function renderPdfPage(pdf, pageNum){
+  const page = await pdf.getPage(pageNum);
+  const viewport = page.getViewport({scale:1.5});
   const canvas = document.createElement('canvas');
-  canvas.width = Math.round(imgBitmap.width * scale);
-  canvas.height = Math.round(imgBitmap.height * scale);
+  canvas.width = Math.min(viewport.width, 1400);
+  canvas.height = viewport.height * (canvas.width/viewport.width);
   const ctx = canvas.getContext('2d');
-  ctx.drawImage(imgBitmap, 0, 0, canvas.width, canvas.height);
-  return canvas;
+  const renderContext = { canvasContext: ctx, viewport: page.getViewport({scale: canvas.width/viewport.width}) };
+  await page.render(renderContext).promise;
+  // show canvas
+  canvasArea.innerHTML = '';
+  canvasArea.appendChild(canvas);
+  currentView.canvas = canvas;
+  currentView.pageIndex = pageNum;
+  currentView.pdf = pdf;
+  // extract image data for processing
+  currentView.imageData = ctx.getImageData(0,0,canvas.width,canvas.height);
+  // detect table lines for visual overlay (simple)
+  const overlay = detectTableLines(currentView.imageData);
+  if(overlay) drawOverlay(canvas, overlay);
+  // attempt to auto-extract table automatically (deferred to processing step)
 }
 
-// --- main processing flow
-startBtn.addEventListener('click', async () => {
-  if(files.length === 0){ log('Brak plików.'); return; }
-  startBtn.disabled = true; cancelBtn.disabled = false; abortFlag = false;
-  setProgress(0); log('Start przetwarzania. Ładowanie bibliotek...');
+/* Image rendering path */
+async function renderImageToCanvas(dataURL){
+  const img = new Image();
+  img.src = dataURL;
+  await new Promise(r=>{ img.onload=r; img.onerror=r; });
+  const canvas = document.createElement('canvas');
+  const maxW = 1000;
+  const scale = Math.min(1, maxW / img.width);
+  canvas.width = Math.round(img.width * scale);
+  canvas.height = Math.round(img.height * scale);
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img,0,0,canvas.width,canvas.height);
+  canvasArea.innerHTML = ''; canvasArea.appendChild(canvas);
+  currentView.canvas = canvas;
+  currentView.imageData = ctx.getImageData(0,0,canvas.width,canvas.height);
+  const overlay = detectTableLines(currentView.imageData);
+  if(overlay) drawOverlay(canvas, overlay);
+}
+
+/* Simple image preprocessing: grayscale, contrast, binarize, resize */
+function preprocessImageData(imageData, opts={scale:1, binarize:true, contrast:1.2}) {
+  const w = Math.max(1, Math.round(imageData.width * opts.scale));
+  const h = Math.max(1, Math.round(imageData.height * opts.scale));
+  const canvas = document.createElement('canvas'); canvas.width=w; canvas.height=h;
+  const ctx = canvas.getContext('2d');
+  // put original into temp canvas scaled
+  const tmp = document.createElement('canvas'); tmp.width=imageData.width; tmp.height=imageData.height; tmp.getContext('2d').putImageData(imageData,0,0);
+  ctx.drawImage(tmp,0,0,imageData.width,imageData.height,0,0,w,h);
+  let id = ctx.getImageData(0,0,w,h);
+  const data = id.data;
+  // grayscale + contrast + optional binarize
+  for(let i=0;i<data.length;i+=4){
+    const r = data[i], g = data[i+1], b = data[i+2];
+    let lum = 0.2126*r + 0.7152*g + 0.0722*b;
+    // contrast
+    lum = ((lum - 128) * opts.contrast) + 128;
+    if(opts.binarize){
+      const v = lum > 150 ? 255 : 0;
+      data[i]=data[i+1]=data[i+2]=v;
+    } else {
+      data[i]=data[i+1]=data[i+2]=lum;
+    }
+  }
+  ctx.putImageData(id,0,0);
+  return canvas.toDataURL('image/png');
+}
+
+/* Detect simple table lines via projection/profile (returns array of horizontal and vertical line positions) */
+function detectTableLines(imageData){
   try{
-    // lazy load minimal libs
-    await loadScriptOnce('https://cdn.jsdelivr.net/npm/pdfjs-dist@2.16.105/build/pdf.min.js', 'pdfjsLib');
-    await loadScriptOnce('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js', 'XLSX');
-    // tesseract and opencv loaded inside workers to avoid blocking main thread
-    // create workers
-    const ocrWorker = createWorkerFromCode(ocrWorkerCode);
-    const cvWorker = createWorkerFromCode(cvWorkerCode);
-    let ocrReady=false, cvReady=false;
-    const tesseractUrl = 'https://cdn.jsdelivr.net/npm/tesseract.js@4.1.1/dist/tesseract.min.js';
-    const opencvUrl = 'https://docs.opencv.org/4.x/opencv.js'; // CDN for OpenCV.js
-    // init workers
-    const ocrInit = new Promise((res, rej) => {
-      ocrWorker.onmessage = (e) => {
-        const m = e.data;
-        if(m.type === 'ready'){ ocrReady=true; res(); }
-        else if(m.type === 'log') log('OCR worker:', JSON.stringify(m.data).slice(0,200));
-        else if(m.type === 'error') log('OCR worker error:', m.error);
-      };
-      ocrWorker.postMessage({cmd:'init', payload:{tesseractUrl, lang:'pol+eng'}});
-    });
-    const cvInit = new Promise((res, rej) => {
-      cvWorker.onmessage = (e) => {
-        const m = e.data;
-        if(m.type === 'ready'){ cvReady=true; res(); }
-        else if(m.type === 'error') log('CV worker error:', m.error);
-      };
-      cvWorker.postMessage({cmd:'init', payload:{opencvUrl}});
-    });
-    await Promise.all([ocrInit, cvInit]);
-    log('Workers gotowi.');
-
-    // process files in batches to limit memory
-    const resultsBySheet = {};
-    let totalItems = files.length;
-    let processedItems = 0;
-
-    for(const f of files){
-      if(abortFlag) break;
-      log('Przetwarzanie pliku:', f.name);
-      if(f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf')){
-        const arrayBuffer = await f.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
-        const numPages = pdf.numPages;
-        for(let p=1; p<=numPages; p++){
-          if(abortFlag) break;
-          log('Render strony', p, '/', numPages);
-          const page = await pdf.getPage(p);
-          const viewport = page.getViewport({scale: 2.0});
-          const canvas = document.createElement('canvas');
-          canvas.width = Math.round(viewport.width);
-          canvas.height = Math.round(viewport.height);
-          const ctx = canvas.getContext('2d');
-          await page.render({canvasContext: ctx, viewport}).promise;
-          // adaptive scaling to limit size
-          const imgBitmap = await createImageBitmap(canvas);
-          const drawCanvas = drawImageToCanvas(imgBitmap, 2000);
-          // send to cv worker for preprocessing
-          const imageData = canvasToImageData(drawCanvas);
-          const cvProcess = new Promise((res, rej) => {
-            cvWorker.onmessage = (ev) => {
-              const m = ev.data;
-              if(m.type === 'processed' && m.id === undefined){ // single-threaded usage
-                res(m.imageData);
-              } else if(m.type === 'error'){ rej(m.error); }
-            };
-            // transfer imageData buffer for speed
-            try{
-              cvWorker.postMessage({cmd:'process', payload:{imageData, id:undefined, options:{maxDim:2000}}}, [imageData.data.buffer]);
-            }catch(e){
-              // fallback without transfer
-              cvWorker.postMessage({cmd:'process', payload:{imageData, id:undefined, options:{maxDim:2000}}});
-            }
-          });
-          const processedImageData = await cvProcess;
-          // OCR: send processed ImageData to OCR worker
-          const ocrRes = new Promise((res, rej) => {
-            ocrWorker.onmessage = (ev) => {
-              const m = ev.data;
-              if(m.type === 'result' && m.id === undefined){ res(m.data); }
-              else if(m.type === 'error'){ rej(m.error); }
-              else if(m.type === 'log'){ /* ignore or show */ }
-            };
-            try{
-              ocrWorker.postMessage({cmd:'recognize', payload:{imageData: processedImageData, id: undefined}});
-            }catch(e){
-              ocrWorker.postMessage({cmd:'recognize', payload:{imageData: processedImageData, id: undefined}});
-            }
-          });
-          const ocrData = await ocrRes;
-          // group words into rows (simple heuristic)
-          const words = (ocrData.words || []).map(w => ({
-            text: w.text || '',
-            x: w.bbox.x0, y: w.bbox.y0, w: w.bbox.x1 - w.bbox.x0
-          })).filter(w=>w.text && w.text.trim().length>0);
-          const rows = groupWordsToRows(words, Math.max(8, drawCanvas.height/200));
-          const table = rowsToTable(rows);
-          resultsBySheet[f.name + '_p' + p] = table;
-          processedItems++;
-          setProgress(processedItems / totalItems);
-          // free memory
-          imgBitmap.close();
-        }
-      } else {
-        // image file
-        const imgBitmap = await createImageBitmap(f);
-        const drawCanvas = drawImageToCanvas(imgBitmap, 2000);
-        const imageData = canvasToImageData(drawCanvas);
-        // cv preprocess
-        const processedImageData = await new Promise((res, rej) => {
-          cvWorker.onmessage = (ev) => {
-            const m = ev.data;
-            if(m.type === 'processed') res(m.imageData);
-            else if(m.type === 'error') rej(m.error);
-          };
-          try{
-            cvWorker.postMessage({cmd:'process', payload:{imageData, id: undefined, options:{maxDim:2000}}}, [imageData.data.buffer]);
-          }catch(e){
-            cvWorker.postMessage({cmd:'process', payload:{imageData, id: undefined, options:{maxDim:2000}}});
-          }
-        });
-        // OCR
-        const ocrData = await new Promise((res, rej) => {
-          ocrWorker.onmessage = (ev) => {
-            const m = ev.data;
-            if(m.type === 'result') res(m.data);
-            else if(m.type === 'error') rej(m.error);
-          };
-          ocrWorker.postMessage({cmd:'recognize', payload:{imageData: processedImageData, id: undefined}});
-        });
-        const words = (ocrData.words || []).map(w => ({
-          text: w.text || '',
-          x: w.bbox.x0, y: w.bbox.y0, w: w.bbox.x1 - w.bbox.x0
-        })).filter(w=>w.text && w.text.trim().length>0);
-        const rows = groupWordsToRows(words, Math.max(8, drawCanvas.height/200));
-        const table = rowsToTable(rows);
-        resultsBySheet[f.name] = table;
-        processedItems++;
-        setProgress(processedItems / totalItems);
-        imgBitmap.close();
+    const w = imageData.width, h = imageData.height;
+    const data = imageData.data;
+    // compute vertical and horizontal projections of "dark" pixels
+    const vert = new Uint32Array(w);
+    const hor = new Uint32Array(h);
+    for(let y=0;y<h;y++){
+      for(let x=0;x<w;x++){
+        const i = (y*w + x)*4;
+        const r=data[i], g=data[i+1], b=data[i+2];
+        const lum = 0.2126*r + 0.7152*g + 0.0722*b;
+        if(lum < 200){ vert[x]++; hor[y]++; }
       }
-    } // end for files
-
-    // terminate workers
-    ocrWorker.postMessage({cmd:'terminate'});
-    cvWorker.postMessage({cmd:'terminate'});
-
-    if(abortFlag){
-      log('Przetwarzanie przerwane przez użytkownika.');
-      startBtn.disabled = false; cancelBtn.disabled = true; setProgress(0);
-      return;
     }
-
-    log('Tworzenie pliku wynikowego (lokalne pobranie)...');
-    // build workbook using SheetJS (already loaded)
-    const wb = XLSX.utils.book_new();
-    for(const [name, table] of Object.entries(resultsBySheet)){
-      const maxCols = table.reduce((m,r)=>Math.max(m, r.length), 0);
-      const norm = table.map(r => { const nr = r.slice(); while(nr.length < maxCols) nr.push(''); return nr; });
-      const ws = XLSX.utils.aoa_to_sheet(norm);
-      XLSX.utils.book_append_sheet(wb, ws, name.substring(0,31));
+    // find peaks (lines) where counts exceed threshold
+    const vlines = []; const hlines = [];
+    const vth = Math.max(3, Math.round(h*0.01));
+    const hth = Math.max(3, Math.round(w*0.01));
+    for(let x=1;x<w-1;x++){
+      if(vert[x] > vth && vert[x] > vert[x-1] && vert[x] >= vert[x+1]) vlines.push(x);
     }
-    const wbout = XLSX.write(wb, {bookType:'xlsx', type:'array'});
-    const blob = new Blob([wbout], {type:'application/octet-stream'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'ocr_output.xlsx';
-    document.body.appendChild(a); a.click(); a.remove();
-    URL.revokeObjectURL(url);
-    log('Gotowe. Plik pobrany.');
-  }catch(e){
-    log('Błąd:', e);
-  } finally {
-    startBtn.disabled = false; cancelBtn.disabled = true; setProgress(1);
+    for(let y=1;y<h-1;y++){
+      if(hor[y] > hth && hor[y] > hor[y-1] && hor[y] >= hor[y+1]) hlines.push(y);
+    }
+    if(vlines.length||hlines.length) return {vlines, hlines};
+    return null;
+  }catch(e){ console.error(e); return null; }
+}
+
+/* Draw overlay lines on canvas */
+function drawOverlay(canvas, overlay){
+  const ctx = canvas.getContext('2d');
+  ctx.save();
+  ctx.strokeStyle = 'rgba(125,211,252,0.6)';
+  ctx.lineWidth = 1;
+  overlay.hlines && overlay.hlines.forEach(y=>{ ctx.beginPath(); ctx.moveTo(0.5,y+0.5); ctx.lineTo(canvas.width+0.5,y+0.5); ctx.stroke(); });
+  overlay.vlines && overlay.vlines.forEach(x=>{ ctx.beginPath(); ctx.moveTo(x+0.5,0.5); ctx.lineTo(x+0.5,canvas.height+0.5); ctx.stroke(); });
+  ctx.restore();
+}
+
+/* Parse DOCX tables via Mammoth */
+async function parseDocxTables(file){
+  try{
+    const arrayBuffer = await readFileAsArrayBuffer(file);
+    const m = await mammoth.convertToHtml({arrayBuffer});
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(m.value,'text/html');
+    const tables = doc.querySelectorAll('table');
+    const out = [];
+    tables.forEach(t=>{
+      const rows = Array.from(t.rows).map(r=>Array.from(r.cells).map(c=>c.textContent.trim()));
+      out.push({rows});
+    });
+    return out;
+  } catch(e){
+    log('Błąd parsowania docx: ' + e.message);
+    return [];
+  }
+}
+
+/* Heuristic cleaning: trim, normalize spaces, fix broken number groups, detect dates */
+function cleanCellText(s){
+  if(!s && s!==0) return '';
+  let t = (''+s).replace(/\\s+/g,' ').trim();
+  // fix common OCR mistakes
+  t = t.replace(/I(?=\\d)/g,'1'); // I123 -> 1123 may be wrong but helps
+  t = t.replace(/O(?=\\d)/g,'0');
+  t = t.replace(/, (?=\\d{3})/g,''); // remove thousand separators wrongly spaced
+  // normalize decimal comma/dot: if contains both, keep last separator
+  if(/[\\d][,\\.][\\d]/.test(t)){
+    // nothing aggressive
+  }
+  return t;
+}
+
+/* Normalize rows to rectangle */
+function normalizeRows(rows){
+  const max = Math.max(...rows.map(r=>r.length));
+  return rows.map(r=>{ const nr = r.slice(); while(nr.length<max) nr.push(''); return nr.map(cleanCellText); });
+}
+
+/* OCR flow for current canvas */
+async function runOCROnCurrentCanvas(opts={binarize:true,scale:1.6}){
+  if(!currentView.canvas || !currentView.imageData) { setOcrStatus('brak obrazu'); return null; }
+  setOcrStatus('inicjalizacja');
+  const worker = await getTesseractWorker();
+  setOcrStatus('preprocessing');
+  const preDataURL = preprocessImageData(currentView.imageData, {scale: opts.scale, binarize: opts.binarize, contrast: 1.3});
+  setProgress(5);
+  setOcrStatus('rozpoznawanie');
+  const res = await worker.recognize(preDataURL);
+  setProgress(90);
+  const text = res.data.text || '';
+  setOcrStatus('gotowe');
+  log('OCR zakończone — długość tekstu: ' + text.length);
+  // convert text to table heuristically: split lines, then split columns by multiple spaces or tab, or by detected vertical lines
+  const lines = text.split('\\n').map(l=>l.replace(/\\r/g,'').trim()).filter(Boolean);
+  // attempt to split by tab or multiple spaces
+  const rows = lines.map(line=>{
+    if(line.includes('\\t')) return line.split('\\t').map(s=>s.trim());
+    const parts = line.split(/ {2,}|\\t/).map(s=>s.trim()).filter(Boolean);
+    if(parts.length>1) return parts;
+    // fallback: split by ' | ' or common separators
+    const sepParts = line.split(/\\s*\\|\\s*|;|,\\s(?=\\d{1,3})/).map(s=>s.trim());
+    return sepParts.length>1 ? sepParts : [line];
+  });
+  // If we have overlay lines, attempt to align columns based on vertical positions
+  // For simplicity: if detection found vertical lines, split using approximate x positions by mapping char bounding boxes (advanced) — skipped for simplicity due to time.
+  const normalized = normalizeRows(rows);
+  // Auto-fix small errors if enabled
+  if(autoFix) {
+    // simple: merge rows with single cell that look like continuation of previous (no header)
+    const merged = [];
+    for(let i=0;i<normalized.length;i++){
+      const r = normalized[i];
+      if(r.length===1 && i>0 && normalized[i-1].some(c=>c.length>0)){
+        // attach as continuation to last column
+        normalized[i-1][normalized[i-1].length-1] += ' ' + r[0];
+      } else merged.push(r);
+    }
+    return merged;
+  }
+  return normalized;
+}
+
+/* Process all selected files: for PDFs - render pages and OCR each page; for images - OCR; for docx - parse already */
+processAllBtn.addEventListener('click', async ()=>{
+  if(!files.length) { log('Brak plików do przetworzenia'); return; }
+  processedSheets = []; sheetsList.innerHTML = '';
+  setProgress(2);
+  for(let fi=0;fi<files.length;fi++){
+    const f = files[fi];
+    const ext = (f.name.split('.').pop()||'').toLowerCase();
+    log('Przetwarzanie: ' + f.name);
+    if(ext === 'pdf'){
+      try{
+        const arrayBuffer = await readFileAsArrayBuffer(f);
+        const pdf = await pdfjsLib.getDocument({data:arrayBuffer}).promise;
+        for(let p=1;p<=pdf.numPages;p++){
+          await renderPdfPage(pdf, p);
+          await sleep(150); // allow UI
+          const rows = await runOCROnCurrentCanvas({binarize:true,scale:1.4});
+          processedSheets.push({fileIndex:fi, pageIndex:p, name: f.name + ' - page' + p, rows: rows || [['(brak danych)']]});
+          log('Dodano arkusz: ' + f.name + ' - page ' + p + ' (wierszy: ' + (rows?rows.length:0) +')');
+        }
+      }catch(e){ log('Błąd PDF: ' + e.message); processedSheets.push({fileIndex:fi,pageIndex:0,name:f.name,rows:[['Błąd: '+e.message]]}); }
+    } else if(['png','jpg','jpeg','bmp','webp'].includes(ext)){
+      try{
+        await openFilePreview(fi); // renders image
+        const rows = await runOCROnCurrentCanvas({binarize:true,scale:1.6});
+        processedSheets.push({fileIndex:fi, pageIndex:0, name:f.name, rows: rows || [['(brak danych)']]});
+        log('Dodano arkusz z obrazu: ' + f.name);
+      }catch(e){ log('Błąd OCR obrazu: ' + e.message); processedSheets.push({fileIndex:fi,pageIndex:0,name:f.name,rows:[['Błąd OCR: '+e.message]]}); }
+    } else if(ext === 'docx'){
+      const arr = await parseDocxTables(f);
+      if(arr.length) arr.forEach((t,i)=> processedSheets.push({fileIndex:fi,pageIndex:0,name: f.name + ' - table' + (i+1), rows: normalizeRows(t.rows)}));
+      else processedSheets.push({fileIndex:fi,pageIndex:0,name:f.name,rows:[['(brak tabel w DOCX)']]});
+    } else if(ext === 'doc'){
+      const txt = await f.text();
+      const lines = txt.split('\\n').map(l=>l.trim()).filter(Boolean).slice(0,200).map(l=>[l]);
+      processedSheets.push({fileIndex:fi,pageIndex:0,name:f.name,rows:normalizeRows(lines)});
+    } else {
+      // fallback: try OCR on file as image
+      try{
+        await openFilePreview(fi);
+        const rows = await runOCROnCurrentCanvas({binarize:true,scale:1.4});
+        processedSheets.push({fileIndex:fi,pageIndex:0,name:f.name, rows: rows || [['(brak danych)']]});
+      }catch(e){ processedSheets.push({fileIndex:fi,pageIndex:0,name:f.name,rows:[['Błąd: '+e.message]]}); }
+    }
+    setProgress(10 + Math.round((fi+1)/files.length*80));
+    renderSheetsList();
+  }
+  setProgress(100);
+  log('Przetwarzanie zakończone. Możesz edytować wykryte tabele przed eksportem.');
+});
+
+/* Utility sleep */
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+/* Render sheets list */
+function renderSheetsList(){
+  sheetsList.innerHTML = '';
+  processedSheets.forEach((s,idx)=>{
+    const div = document.createElement('div'); div.style.display='flex'; div.style.justifyContent='space-between'; div.style.alignItems='center'; div.style.marginBottom='6px';
+    const left = document.createElement('div');
+    const nameInput = document.createElement('input'); nameInput.value = s.name; nameInput.style.width='160px';
+    nameInput.onchange = ()=>{ s.name = nameInput.value; };
+    const meta = document.createElement('div'); meta.className='small'; meta.textContent = 'wiersze: ' + s.rows.length;
+    left.appendChild(nameInput); left.appendChild(meta);
+    const actions = document.createElement('div');
+    const viewBtn = document.createElement('button'); viewBtn.className='btn'; viewBtn.textContent='Otwórz'; viewBtn.onclick = ()=>showSheet(idx);
+    const remBtn = document.createElement('button'); remBtn.className='btn'; remBtn.textContent='Usuń'; remBtn.onclick = ()=>{ processedSheets.splice(idx,1); renderSheetsList(); tableEditor.innerHTML=''; };
+    actions.appendChild(viewBtn); actions.appendChild(remBtn);
+    div.appendChild(left); div.appendChild(actions);
+    sheetsList.appendChild(div);
+  });
+}
+
+/* Show sheet in editor */
+function showSheet(sheetIndex){
+  const s = processedSheets[sheetIndex];
+  if(!s) return;
+  currentView.sheetIndex = sheetIndex;
+  tableEditor.innerHTML = '';
+  const tbl = document.createElement('table'); tbl.className='editable';
+  const thead = document.createElement('thead');
+  const headerRow = document.createElement('tr');
+  const cols = s.rows.length? s.rows[0].length : 0;
+  for(let c=0;c<cols;c++){
+    const th = document.createElement('th'); th.contentEditable = 'true'; th.textContent = s.rows[0][c] || ('Col ' + (c+1));
+    th.oninput = ()=>{ /* optional: rename header handling */ };
+    headerRow.appendChild(th);
+  }
+  thead.appendChild(headerRow);
+  tbl.appendChild(thead);
+  const tbody = document.createElement('tbody');
+  for(let r=1;r<s.rows.length;r++){
+    const tr = document.createElement('tr');
+    for(let c=0;c<cols;c++){
+      const td = document.createElement('td');
+      td.contentEditable = 'true';
+      td.textContent = s.rows[r][c] || '';
+      td.oninput = ()=>{ /* mark changes */ };
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+  }
+  tbl.appendChild(tbody);
+  // add buttons to add/remove rows/cols
+  const controls = document.createElement('div'); controls.style.display='flex'; controls.style.gap='6px'; controls.style.marginBottom='6px';
+  const addRow = document.createElement('button'); addRow.className='btn'; addRow.textContent='Dodaj wiersz'; addRow.onclick = ()=>{
+    const nr = new Array(cols).fill(''); s.rows.push(nr);
+    showSheet(sheetIndex);
+  };
+  const remRow = document.createElement('button'); remRow.className='btn'; remRow.textContent='Usuń ostatni wiersz'; remRow.onclick = ()=>{ if(s.rows.length>1){ s.rows.pop(); showSheet(sheetIndex); } };
+  const addCol = document.createElement('button'); addCol.className='btn'; addCol.textContent='Dodaj kolumnę'; addCol.onclick = ()=>{ s.rows.forEach(r=>r.push('')); showSheet(sheetIndex); };
+  const remCol = document.createElement('button'); remCol.className='btn'; remCol.textContent='Usuń ostatnią kolumnę'; remCol.onclick = ()=>{ s.rows.forEach(r=>{ if(r.length>1) r.pop(); }); showSheet(sheetIndex); };
+  controls.appendChild(addRow); controls.appendChild(remRow); controls.appendChild(addCol); controls.appendChild(remCol);
+
+  tableEditor.appendChild(controls);
+  tableEditor.appendChild(tbl);
+}
+
+/* Apply changes from editor back to processedSheets */
+applyChangesBtn.addEventListener('click', ()=>{
+  const idx = currentView.sheetIndex;
+  if(idx===null || idx===undefined) { log('Brak otwartej tabeli do zatwierdzenia'); return; }
+  const table = tableEditor.querySelector('table.editable');
+  if(!table) return;
+  const rows = [];
+  const ths = Array.from(table.querySelectorAll('thead th')).map(th=>cleanCellText(th.textContent||''));
+  rows.push(ths);
+  const trs = table.querySelectorAll('tbody tr');
+  trs.forEach(tr=>{
+    const tds = Array.from(tr.querySelectorAll('td')).map(td=>cleanCellText(td.textContent||''));
+    rows.push(tds);
+  });
+  processedSheets[idx].rows = rows;
+  renderSheetsList();
+  log('Zatwierdzono zmiany w arkuszu: ' + processedSheets[idx].name);
+});
+
+/* Re-run OCR on current canvas (with same settings) */
+reRunOCRBtn.addEventListener('click', async ()=>{
+  if(!currentView.canvas) { log('Brak obrazu do OCR'); return; }
+  const rows = await runOCROnCurrentCanvas({binarize:true,scale:1.6});
+  if(!rows) return;
+  // replace current sheet or add new
+  if(currentView.sheetIndex!==null && currentView.sheetIndex!==undefined){
+    processedSheets[currentView.sheetIndex].rows = rows;
+    renderSheetsList();
+    showSheet(currentView.sheetIndex);
+    log('Ponowne OCR: zastąpiono zawartość aktualnego arkusza');
+  } else {
+    processedSheets.push({fileIndex: currentView.fileIndex, pageIndex: currentView.pageIndex||0, name: (files[currentView.fileIndex]?.name||'sheet') + '-ocr', rows});
+    renderSheetsList();
+    log('Ponowne OCR: dodano nowy arkusz');
   }
 });
 
-// cancel
-cancelBtn.addEventListener('click', () => { abortFlag = true; cancelBtn.disabled = true; log('Anulowanie...'); });
+/* Export to XLSX */
+exportBtn.addEventListener('click', ()=>{
+  if(!processedSheets.length){ log('Brak arkuszy do eksportu'); return; }
+  const wb = XLSX.utils.book_new();
+  processedSheets.forEach(s=>{
+    const ws = XLSX.utils.aoa_to_sheet(s.rows);
+    let sheetName = s.name.replace(/[^A-Za-z0-9\\-_ ]/g,'').slice(0,31) || 'Sheet';
+    // ensure unique
+    let base = sheetName; let i=1;
+    while(wb.SheetNames.includes(sheetName)) sheetName = base + '_' + (i++);
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  });
+  const wbout = XLSX.write(wb, {bookType:'xlsx', type:'array'});
+  const blob = new Blob([wbout], {type:'application/octet-stream'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'export_tables.xlsx'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  log('Eksport do .xlsx wygenerowany.');
+});
 
-// --- small helpers for grouping words into rows and converting to table
-function groupWordsToRows(words, yTol=10){
-  words.sort((a,b)=>a.y - b.y || a.x - b.x);
-  const rows = [];
-  for(const w of words){
-    let placed=false;
-    for(const r of rows){
-      if(Math.abs(w.y - r.avgY) <= yTol){
-        r.items.push(w);
-        r.avgY = (r.avgY*(r.items.length-1) + w.y)/r.items.length;
-        placed=true; break;
-      }
-    }
-    if(!placed) rows.push({avgY: w.y, items:[w]});
-  }
-  return rows.map(r => r.items.sort((a,b)=>a.x - b.x));
-}
-function rowsToTable(rows){
-  return rows.map(r => r.map(c => (c.text||'').replace(/\\s+/g,' ').trim()));
-}
+/* Download JSON */
+downloadJSONBtn.addEventListener('click', ()=>{
+  const data = JSON.stringify(processedSheets, null, 2);
+  const blob = new Blob([data], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'sheets_preview.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  log('Pobrano JSON z arkuszami.');
+});
+
+/* Clear all */
+clearAllBtn.addEventListener('click', ()=>{ files=[]; resetUI(); filesInput.value=''; });
+
+/* Init */
+resetUI();
+log('Gotowy — wybierz pliki, aby rozpocząć.');
 </script>
 </body>
 </html>
