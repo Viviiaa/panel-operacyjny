@@ -6,76 +6,62 @@
 <title>Konwerter → Excel (dark) — zoptymalizowany</title>
 
 <style>
-    :root {
+     :root {
         --neon: #00ff41;
         --white: #ffffff;
-        --glass: rgba(10, 10, 10, 0.95);
+        --glass: rgba(10, 10, 10, 0.96);
         --dim: rgba(0, 255, 65, 0.15);
     }
 
     body, html {
-        margin: 0; padding: 0;
-        background: #000 !important;
-        color: var(--neon) !important;
-        font-family: 'Segoe UI', sans-serif;
-        min-height: 100vh;
-        overflow-x: hidden;
+        margin: 0; padding: 0; background: #000 !important;
+        color: var(--neon) !important; font-family: 'Segoe UI', sans-serif;
+        min-height: 100vh; overflow-x: hidden;
     }
 
-    /* --- TWÓJ IDEALNY EKRAN LOGOWANIA (LINIE 32-71 ZE SCREENA) --- */
+    /* MATRIX TŁO - BEZPIECZNE */
+    #matrix-bg { position: fixed; inset: 0; z-index: -1; opacity: 0.12; pointer-events: none; }
+
+    /* --- TWÓJ IDEALNY EKRAN LOGOWANIA (ZACHOWANY 1:1) --- */
     #loginOverlay {
         position: fixed; inset: 0; background: #000; z-index: 10000;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
     }
-
-    #loginOverlay::before, .oracle-avatar::before {
-        content: "Ξ";
-        font-size: 100px;
-        color: var(--white);
+    #loginOverlay::before {
+        content: "Ξ"; font-size: 100px; color: var(--white);
         text-shadow: 0 0 30px var(--neon), 0 0 60px var(--neon);
-        z-index: 5;
-        position: relative;
-        animation: avatar-float 4s infinite ease-in-out;
+        z-index: 5; position: relative; animation: avatar-float 4s infinite ease-in-out;
     }
-
-    #loginOverlay::after, .oracle-avatar::after {
-        content: ""; position: absolute;
-        width: 250px; height: 250px;
-        border: 2px solid var(--neon);
-        border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+    #loginOverlay::after {
+        content: ""; position: absolute; width: 250px; height: 250px;
+        border: 2px solid var(--neon); border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
         animation: rotate-organic 8s infinite linear;
-        box-shadow: inset 0 0 30px var(--neon), 0 0 30px var(--neon);
-        opacity: 0.3;
+        box-shadow: inset 0 0 30px var(--neon), 0 0 30px var(--neon); opacity: 0.3;
     }
-
     @keyframes rotate-organic { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-    @keyframes avatar-float {
-        0%, 100% { transform: translateY(0) scale(1); }
-        50% { transform: translateY(-15px) scale(1.05); }
-    }
-
+    @keyframes avatar-float { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-15px) scale(1.05); } }
     #accessCode {
         background: transparent; border: none; border-bottom: 3px solid var(--white);
         color: var(--white); font-size: 4rem; text-align: center; width: 500px;
-        outline: none; letter-spacing: 20px; transition: 0.5s;
-        text-shadow: 0 0 20px var(--white); margin-top: 50px;
-        position: relative; z-index: 10001;
+        outline: none; letter-spacing: 20px; transition: 0.5s; text-shadow: 0 0 20px var(--white);
+        margin-top: 50px; position: relative; z-index: 10001;
     }
 
-    /* --- INTERFEJS SYSTEMOWY (LUKSUSOWA KONTYNUACJA) --- */
+    /* --- SYSTEM (TRZY KOLUMNY I SZKŁO) --- */
     .app {
-        max-width: 1750px;
-        margin: 40px auto;
-        background: var(--glass);
-        backdrop-filter: blur(40px);
-        border: 1px solid var(--dim);
-        border-radius: 35px;
-        padding: 40px;
+        max-width: 1800px; margin: 30px auto; padding: 40px;
+        background: var(--glass); backdrop-filter: blur(50px);
+        border: 1px solid var(--dim); border-radius: 40px;
         box-shadow: 0 50px 150px #000;
-        /* display: none; - kontrolowane przez Twój JS */
     }
 
-    /* TWOJA STRUKTURA PANELOWA (SZKŁO I KONTRAST) */
+    /* NAPRAWA UKŁADU - PRZYWRACAMY TRZY KOLUMNY */
+    .layout {
+        display: grid; grid-template-columns: 400px 1fr 400px;
+        gap: 25px; align-items: start;
+    }
+
+    /* TWOJE PANELE (DOPASOWANE DO TWOJEGO HTML) */
     .panel, #leftPanel, #centerPanel, #rightPanel, .section-card, .layout > div {
         background: rgba(0, 0, 0, 0.7) !important;
         border: 1px solid var(--dim) !important;
@@ -89,52 +75,31 @@
     strong, h2, .small strong, .panel-title {
         color: #ffffff !important;
         text-transform: uppercase !important;
-        letter-spacing: 5px !important;
+        letter-spacing: 4px !important;
         font-size: 0.8rem !important;
         border-left: 4px solid var(--neon);
-        padding-left: 15px;
-        margin-bottom: 20px;
-        display: block;
+        padding-left: 15px; margin-bottom: 20px; display: block;
     }
 
-    /* PRZYCISKI - NEONOWE NARZĘDZIA (W TYM IMPORT) */
+    /* PRZYCISKI - NEONOWE I WIDOCZNE */
     button, .btn, .filebtn, .controls label {
         background: transparent !important;
         border: 1px solid var(--neon) !important;
         color: var(--neon) !important;
-        padding: 12px 25px !important;
-        border-radius: 50px !important;
-        font-weight: bold;
-        text-transform: uppercase;
-        font-size: 0.7rem;
-        cursor: pointer;
-        transition: 0.3s;
-        display: inline-block !important;
-        text-decoration: none;
+        padding: 12px 25px !important; border-radius: 50px !important;
+        font-weight: bold; text-transform: uppercase; font-size: 0.7rem;
+        cursor: pointer; transition: 0.3s; display: inline-block !important;
     }
-
-    button:hover, .filebtn:hover {
-        background: var(--neon) !important;
-        color: #000 !important;
-        box-shadow: 0 0 30px var(--neon);
-    }
+    button:hover, .filebtn:hover { background: var(--neon) !important; color: #000 !important; box-shadow: 0 0 30px var(--neon); }
 
     /* EDYTOR I LOGI */
     #log, #logs, #ocrTextarea, #tableEditor {
-        background: #000 !important;
-        border: 1px solid #111 !important;
-        color: var(--neon) !important;
-        font-family: 'Courier New', monospace;
-        padding: 20px;
-        border-radius: 15px;
-        width: 100%;
-        box-sizing: border-box;
+        background: #000 !important; border: 1px solid #111 !important;
+        color: var(--neon) !important; font-family: 'Courier New', monospace;
+        padding: 20px; border-radius: 15px; width: 100%; box-sizing: border-box;
     }
-    
     #ocrTextarea { border-left: 3px solid var(--neon) !important; }
 
-    /* MATRIX TŁO */
-    #matrix-bg { position: fixed; inset: 0; z-index: -1; opacity: 0.12; pointer-events: none; }
     }
 
 </style>
