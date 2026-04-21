@@ -503,59 +503,6 @@
 
 <script>
 
-    // --- ANIMACJA MATRIX ---
-    const canvas = document.getElementById('matrix-bg');
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    const chars = "Ξ0123456789ABCDEFWYROCZNIA";
-    const fontSize = 14;
-    const columns = canvas.width / fontSize;
-    const drops = Array(Math.floor(columns)).fill(1);
-
-    function drawMatrix() {
-        ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "#00ff41";
-        ctx.font = fontSize + "px monospace";
-        for (let i = 0; i < drops.length; i++) {
-            const text = chars[Math.floor(Math.random() * chars.length)];
-            ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-            if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
-            drops[i]++;
-        }
-    }
-    setInterval(drawMatrix, 35);
-
-    // --- LOGIKA SYSTEMU ---
-    let processedSheets = [];
-    const log = (m) => { const l = document.getElementById('logs'); l.innerHTML += `[${new Date().toLocaleTimeString()}] ${m}<br>`; l.scrollTop = l.scrollHeight; };
-
-    async function handleFiles(files) {
-        processedSheets = [];
-        for (let file of files) {
-            log(`Analiza obiektu: ${file.name}...`);
-            const worker = await Tesseract.createWorker('pol');
-            const { data: { text } } = await worker.recognize(file);
-            document.getElementById('ocrTextarea').value = text;
-            processedSheets.push({ name: file.name, text: text });
-            await worker.terminate();
-        }
-        log("Ekstrakcja zakończona sukcesem.");
-    }
-
-    function generateExcel() {
-        if (!processedSheets.length) return log("BŁĄD: Brak danych do kompilacji.");
-        const wb = XLSX.utils.book_new();
-        processedSheets.forEach(p => {
-            const rows = p.text.split('\n').map(l => l.trim().split(/\s{2,}/));
-            const ws = XLSX.utils.aoa_to_sheet(rows);
-            XLSX.utils.book_append_sheet(wb, ws, p.name.slice(0,30));
-        });
-        XLSX.writeFile(wb, "Raport_Wyroczni_Premium.xlsx");
-        log("Raport wygenerowany.");
-    }
-    
 /* Globals */
 const filesInput = document.getElementById('files');
 const fileCount = document.getElementById('fileCount');
