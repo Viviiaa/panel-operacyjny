@@ -7,82 +7,88 @@
 
 <style>
     :root {
-            --bg: #050505;
-            --acc: #00ff41;
-            --dim: #003b00;
-            --glass: rgba(10, 10, 10, 0.85);
-            --glow: 0 0 15px rgba(0, 255, 65, 0.2);
-        }
+        --bg: #050505;
+        --acc: #00ff41;
+        --dim: #003b00;
+        --glass: rgba(10, 10, 10, 0.9);
+    }
 
-        body {
-            background: radial-gradient(circle at center, #0a1a0a 0%, #050505 100%);
-            color: var(--acc);
-            font-family: 'Segoe UI', sans-serif;
-            margin: 0;
-            height: 100vh;
-            overflow: hidden;
-            zoom: 0.85; /* To jest to magiczne pomniejszenie */
-        }
+    body {
+        background-color: var(--bg);
+        color: var(--acc);
+        font-family: 'Segoe UI', sans-serif;
+        margin: 0;
+        padding: 10px; /* Mniejszy margines strony */
+        height: 100vh;
+        overflow: hidden; /* Blokujemy scrollowanie całej strony */
+    }
 
-        /* FUTURYSTYCZNE SZKŁO */
-        .app {
-            max-width: 1300px;
-            margin: 20px auto;
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--dim);
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 0 50px rgba(0,0,0,1), var(--glow);
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            height: calc(100vh - 60px);
-        }
+    /* KONTENER GŁÓWNY - Dopasowany do ekranu */
+    .app {
+        height: calc(100vh - 20px);
+        display: grid;
+        grid-template-columns: 300px 1fr 400px; /* Trzy kolumny: Logi | Podgląd | Edytor */
+        grid-template-rows: auto 1fr auto;
+        gap: 10px;
+        background: var(--glass);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--dim);
+        border-radius: 10px;
+        padding: 15px;
+    }
 
-        header { text-align: center; border-bottom: 1px solid var(--dim); padding-bottom: 15px; }
-        h1 { font-family: 'Courier New', monospace; letter-spacing: 6px; margin: 0; text-shadow: 0 0 10px var(--acc); }
-        .lead { font-size: 0.8rem; opacity: 0.6; margin: 5px 0; }
+    header { grid-column: 1 / -1; margin-bottom: 5px; border-bottom: 1px solid var(--dim); }
+    h1 { font-size: 1.2rem; margin: 0; letter-spacing: 3px; } /* Mniejszy tytuł */
+    .lead { font-size: 0.8rem; margin: 2px 0; opacity: 0.7; }
 
-        /* UKŁAD PANELOWY */
-        .main-grid { display: grid; grid-template-columns: 350px 1fr; gap: 20px; flex-grow: 1; overflow: hidden; }
-        .panel { background: rgba(0,0,0,0.4); border: 1px solid var(--dim); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; }
-        
-        /* TERMINAL I EDYTOR */
-        #logs, #ocrTextarea {
-            background: rgba(0,0,0,0.6);
-            border: 1px solid var(--dim);
-            color: var(--acc);
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-            padding: 10px;
-            border-radius: 8px;
-        }
-        #logs { height: 150px; overflow-y: auto; margin-top: 10px; }
-        #ocrTextarea { flex-grow: 1; resize: none; outline: none; margin-top: 10px; }
-        #ocrTextarea:focus { border-color: var(--acc); box-shadow: var(--glow); }
+    /* LEWY PANEL - Sterowanie i Logi */
+    #leftPanel { display: flex; flex-direction: column; gap: 10px; overflow: hidden; }
+    #logs { 
+        flex-grow: 1; 
+        font-size: 11px; 
+        background: rgba(0,0,0,0.5); 
+        padding: 8px; 
+        height: auto; /* Sam się dopasuje */
+    }
 
-        /* PRZYCISKI NEONOWE */
-        button, .filebtn {
-            background: linear-gradient(45deg, #001a00, #003b00);
-            color: var(--acc);
-            border: 1px solid var(--acc);
-            padding: 10px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: 0.3s;
-        }
-        button:hover { background: var(--acc); color: #000; box-shadow: 0 0 20px var(--acc); }
+    /* ŚRODKOWY PANEL - Podgląd obrazu */
+    #centerPanel { 
+        border: 1px solid var(--dim); 
+        background: #000; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center;
+        overflow: auto;
+    }
+    #canvasArea canvas { max-width: 100%; height: auto; }
 
-        /* LOGOWANIE */
-        #loginOverlay { position: fixed; inset: 0; background: #000; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        #accessCode { background: transparent; border: 1px solid var(--acc); color: var(--acc); padding: 15px; border-radius: 50px; text-align: center; font-size: 1.5rem; outline: none; box-shadow: var(--glow); }
+    /* PRAWY PANEL - Edytor i Eksport */
+    #rightPanel { display: flex; flex-direction: column; gap: 10px; }
+    textarea { 
+        flex-grow: 1; 
+        background: #000; 
+        color: var(--acc); 
+        border: 1px solid var(--dim); 
+        font-family: 'Courier New', monospace; 
+        font-size: 12px; 
+        padding: 10px;
+        resize: none;
+    }
 
-        /* ALARM */
-        #errorOverlay { position: fixed; inset: 0; background: rgba(150,0,0,0.9); z-index: 10001; display: none; flex-direction: column; align-items: center; justify-content: center; }
+    /* PRZYCISKI - Bardziej kompaktowe */
+    button, .filebtn {
+        padding: 8px 15px;
+        font-size: 0.75rem;
+        margin: 0;
+    }
+
+    .pill, .chip { font-size: 0.7rem; padding: 2px 8px; }
+
+    footer { grid-column: 1 / -1; font-size: 0.7rem; opacity: 0.5; padding-top: 5px; }
+
+    /* Ukrywamy scrollbar, żeby było hakersko */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: var(--dim); }
 </style>
 
 <!-- Libraries -->
