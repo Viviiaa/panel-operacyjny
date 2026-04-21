@@ -6,147 +6,122 @@
 <title>SYSTEM OPERACYJNY: WYROCZNIA</title>
 
 <style>
-        :root {
-        --neon: #00ff41;
-        --white: #ffffff;
-        --glass: rgba(8, 8, 8, 0.98);
-        --border: rgba(0, 255, 65, 0.2);
-    }
+        --bg-1:#0b0f14; --bg-2:#0f1419; --card:#0e1720;
+  --accent:#6ee7b7; --muted:#9aa6b2; --text:#e6eef3;
+  --danger:#ff6b6b; --glass:rgba(255,255,255,0.03);
+  --border:rgba(255,255,255,0.06); --shadow:0 6px 18px rgba(2,8,15,0.6);
+  --radius:10px; font-family: Inter, "Segoe UI", Roboto, system-ui, -apple-system, "Helvetica Neue", Arial;
+}
 
-    body, html {
-        margin: 0; padding: 0; background: #000 !important;
-        color: var(--neon) !important; font-family: 'Segoe UI', sans-serif;
-        min-height: 100vh; width: 100vw; overflow-x: hidden;
-    }
+/* global */
+html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg-1),var(--bg-2));color:var(--text);-webkit-font-smoothing:antialiased}
+body > div, .container, .app, #app { background:transparent; color:var(--text); }
 
-    /* --- TWOJE IDEALNE LOGOWANIE (NIETYKALNE) --- */
-    #loginOverlay {
-        position: fixed; inset: 0; background: #000; z-index: 10000;
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
-    }
-    #loginOverlay::before {
-        content: "Ξ"; font-size: 110px; color: var(--white);
-        text-shadow: 0 0 50px var(--neon); margin-bottom: 50px;
-        animation: breath-gate 4s infinite ease-in-out;
-    }
-    #loginOverlay::after {
-        content: ""; position: absolute; width: 280px; height: 280px;
-        border: 2px solid var(--neon); border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
-        animation: rotate-portal 10s infinite linear; box-shadow: inset 0 0 40px var(--neon); opacity: 0.3;
-    }
-    @keyframes rotate-portal { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-    @keyframes breath-gate { 0%, 100% { transform: scale(1); opacity: 0.4; } 50% { transform: scale(1.05); opacity: 1; } }
-    #accessCode {
-        background: transparent; border: none; border-bottom: 3px solid var(--white);
-        color: var(--white); font-size: 4rem; text-align: center; width: 450px;
-        outline: none; letter-spacing: 15px; position: relative; z-index: 10001;
-    }
+/* panels & layout (dopasowane do Twoich divów) */
+.panel, .panel-body, .panel-header, .panel-footer, .card, .box, .leftPanel, .rightPanel {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.05));
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  color:var(--text);
+}
+.leftPanel, .rightPanel { padding:14px; }
+.panel-header { padding:10px 12px; border-bottom:1px solid rgba(255,255,255,0.03); font-weight:700; color:var(--text) }
+.panel-body { padding:12px; }
+.panel-footer, .footer { padding:10px 12px; color:var(--muted); font-size:13px; border-top:1px solid rgba(255,255,255,0.02) }
 
-    /* --- SYSTEM: PEŁNOEKRANOWY KOKPIT (100% SZEROKOŚCI) --- */
-    .app {
-        width: 100vw !important; /* ROZCIĄGNIĘCIE NA CAŁY MONITOR */
-        min-height: 100vh;
-        margin: 0 !important;
-        padding: 40px !important;
-        background: var(--glass) !important;
-        backdrop-filter: blur(80px);
-        box-sizing: border-box !important;
-        display: none; /* Pokaże JS */
-        position: relative;
-    }
+/* header / title tweaks */
+h1,h2,h3,h4,h5{color:var(--text); margin:0 0 8px 0}
+.small { color:var(--muted); font-size:13px }
 
-    /* NOWOCZESNE LOGO Ξ - TWOJA SYGNATURA */
-    .app::after {
-        content: "Ξ"; position: absolute; top: 30px; left: 50%; transform: translateX(-50%);
-        font-size: 50px; color: var(--white); text-shadow: 0 0 25px var(--neon);
-        opacity: 0.9; animation: logo-float 5s infinite ease-in-out;
-    }
-    @keyframes logo-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+/* buttons */
+button, .btn { background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.08));
+  color:var(--text); border:1px solid rgba(255,255,255,0.06); padding:8px 12px; border-radius:8px; cursor:pointer;
+}
+button.primary, .btn-primary { background:linear-gradient(90deg, rgba(110,231,183,0.14), rgba(102,126,234,0.08)); color:#021a16; border-color: rgba(110,231,183,0.18); font-weight:700 }
 
-    /* LAYOUT: TRZY FILARY ROZSTAWIONE NA CAŁY EKRAN */
-    .layout {
-        display: flex !important;
-        flex-direction: row !important;
-        justify-content: space-between !important;
-        gap: 30px !important;
-        width: 100% !important;
-        margin-top: 60px;
-    }
+/* inputs, selects, textarea */
+input, textarea, select, .input {
+  background: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(0,0,0,0.06));
+  color:var(--text); border:1px solid var(--border); padding:8px 10px; border-radius:8px; outline:none;
+}
+input::placeholder, textarea::placeholder { color: rgba(230,238,243,0.45) }
 
-    /* TWOJE PANELE (LEFT, CENTER, RIGHT) - PANCERNE SZKŁO */
-    #leftPanel, #centerPanel, #rightPanel, .panel {
-        background: rgba(15, 15, 15, 0.8) !important;
-        border: 1px solid var(--border) !important;
-        border-radius: 30px !important;
-        padding: 35px !important;
-        box-shadow: inset 0 0 40px #000;
-        transition: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
-        flex: 1; /* Równy podział miejsca */
-    }
-    #centerPanel { flex: 2 !important; } /* Środkowy panel szerszy dla edytora */
+/* table / xlsx preview */
+table, .table { width:100%; border-collapse:collapse; color:var(--text); background:transparent; }
+table th, table td, .table th, .table td { padding:10px 12px; border-bottom:1px dashed rgba(255,255,255,0.03); text-align:left }
+table th { color:var(--muted); font-size:13px; font-weight:600 }
 
-    #leftPanel:hover, #centerPanel:hover, #rightPanel:hover {
-        border-color: var(--neon) !important;
-        transform: translateY(-5px);
-        box-shadow: 0 20px 60px rgba(0, 255, 65, 0.05);
-    }
+/* thumbnails / images */
+.thumbnail, .thumb, img.preview { background:var(--glass); border:1px solid var(--border); border-radius:8px; padding:6px; max-width:100%; height:auto; display:inline-block; }
 
-    /* BIAŁE NAGŁÓWKI - CZYTELNOŚĆ ABSOLUTNA */
-    strong, h2, .panel-title {
-        color: var(--white) !important;
-        text-transform: uppercase !important;
-        letter-spacing: 5px !important;
-        font-size: 0.85rem !important;
-        border-left: 5px solid var(--neon);
-        padding-left: 20px;
-        margin-bottom: 25px;
-        display: block;
-    }
+/* logs / status (dopasowane do log area) */
+.log, .status, .console, .panel-log { background: rgba(0,0,0,0.04); border-left:4px solid rgba(255,255,255,0.03); color:var(--muted); padding:10px; border-radius:6px; font-family: Menlo, "Courier New", monospace; font-size:13px; white-space:pre-wrap }
 
-    /* PRZYCISKI - W KOŃCU WIDOCZNE I LUKSUSOWE (IMPORT / EKSTRAKCJA) */
-    .controls { display: flex; flex-direction: column; gap: 15px; width: 100%; }
+/* tags / badges */
+.tag, .badge { background: rgba(110,231,183,0.12); color: rgba(2,40,30,0.95); padding:4px 8px; border-radius:999px; font-size:12px; font-weight:600 }
 
-    button, .btn, .filebtn, .controls label {
-        display: flex !important;
-        align-items: center; justify-content: center;
-        background: var(--white) !important; /* Biel dla najwyższego luksusu */
-        color: #000 !important;
-        border: none !important;
-        padding: 20px 30px !important;
-        border-radius: 15px !important;
-        font-weight: 900;
-        text-transform: uppercase;
-        letter-spacing: 3px;
-        font-size: 0.75rem;
-        cursor: pointer;
-        width: 100%;
-        transition: 0.3s all;
-        box-sizing: border-box;
-    }
+/* links */
+a { color:var(--accent); text-decoration:none } a:hover { text-decoration:underline }
 
-    button:hover, .filebtn:hover {
-        background: var(--neon) !important;
-        transform: scale(1.02);
-        box-shadow: 0 0 40px var(--neon);
-    }
+/* misc */
+img { image-rendering:auto }
+.success { color:#b7f3d6 } .error, .danger { color:var(--danger) }
 
-    /* EDYTOR I LOGI - CZARNA GŁĘBIA */
-    #log, #ocrTextarea {
-        background: #000 !important;
-        border: 1px solid #1a1a1a !important;
-        color: var(--neon) !important;
-        font-family: 'JetBrains Mono', monospace;
-        padding: 25px;
-        border-radius: 20px;
-        font-size: 15px;
-        line-height: 1.8;
-        width: 100%;
-        box-sizing: border-box;
-    }
-    #ocrTextarea { height: 600px; border-left: 5px solid var(--neon) !important; }
+/* LOGIN (dopasowany tak, aby działał z Twoim markupiem) */
+.loginWrap, .login-container, .authWrap {
+  display:flex; align-items:center; justify-content:center; min-height:70vh; padding:28px; gap:24px; position:relative; z-index:2;
+}
+.loginWrap::before, .login-container::before {
+  content:""; position:absolute; inset:0; background: linear-gradient(90deg, rgba(110,231,183,0.02), transparent 40%, rgba(102,126,234,0.01)); pointer-events:none; border-radius:14px; z-index:1; mix-blend-mode:overlay;
+}
+.loginCard, .authCard, .panel-login {
+  position:relative; z-index:3; width:420px; max-width:92%; padding:26px; border-radius:14px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06));
+  border:1px solid rgba(110,231,183,0.06); box-shadow:0 12px 40px rgba(2,8,15,0.6); color:var(--text); overflow:hidden;
+}
+.loginCard::after, .authCard::after {
+  content:""; position:absolute; height:3px; left:0; right:0; top:0; background: linear-gradient(90deg, rgba(110,231,183,0.95), rgba(102,126,234,0.9));
+}
+.loginHeader { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px }
+.loginHeader .title, .authHeader .title { font-size:20px; font-weight:700; letter-spacing:0.6px; color:var(--text) }
+.loginHeader .subtitle, .authHeader .subtitle { font-size:12px; color:var(--muted); font-weight:600 }
 
-    /* MATRIX TŁO */
-    #matrix-bg { position: fixed; inset: 0; z-index: -1; opacity: 0.08; }
+/* fields */
+.login-field, .auth-field { display:flex; flex-direction:column; gap:8px; margin-bottom:12px }
+.login-field label, .auth-field label { font-size:12px; color:var(--muted); font-weight:600; letter-spacing:0.6px }
+.login-field input, .auth-field input {
+  background: rgba(2,8,15,0.35); border:1px solid rgba(255,255,255,0.04); padding:10px 12px; border-radius:8px; color:var(--text); font-size:14px;
+  box-shadow: inset 0 -6px 18px rgba(0,0,0,0.35); font-family: "JetBrains Mono", "Courier New", monospace;
+}
+.login-field input:focus, .auth-field input:focus {
+  box-shadow: 0 8px 30px rgba(102,126,234,0.09), inset 0 -6px 20px rgba(0,0,0,0.4); transform: translateY(-1px);
+  border-color: rgba(102,126,234,0.28);
+}
+
+/* actions */
+.login-actions, .auth-actions { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:8px }
+.btn-login, .btn-auth { flex:1; padding:10px 14px; border-radius:10px; border:1px solid rgba(110,231,183,0.18);
+  background: linear-gradient(90deg, rgba(110,231,183,0.14), rgba(102,126,234,0.08)); color:#021a16; font-weight:700; cursor:pointer;
+  box-shadow: 0 10px 30px rgba(16,38,56,0.5);
+}
+.btn-login:hover, .btn-auth:hover { transform: translateY(-3px); box-shadow: 0 18px 44px rgba(16,38,56,0.7) }
+
+/* extra / terminal-like status */
+.login-extra, .auth-extra { display:flex; align-items:center; justify-content:space-between; margin-top:10px; color:var(--muted); font-size:13px }
+.login-terminal, .auth-terminal { margin-top:14px; background: linear-gradient(180deg, rgba(0,0,0,0.14), rgba(0,0,0,0.07)); border:1px solid rgba(255,255,255,0.02);
+  padding:10px; border-radius:8px; font-family: "JetBrains Mono", monospace; color:#c7f0de; font-size:12px; min-height:36px; display:flex; align-items:center; gap:8px }
+
+/* branding */
+.brand, .authBrand { display:flex; align-items:center; gap:10px }
+.brand .logo, .authBrand .logo { width:36px; height:36px; border-radius:8px; background: linear-gradient(135deg, rgba(110,231,183,0.16), rgba(102,126,234,0.16)); display:inline-flex; align-items:center; justify-content:center; font-weight:800; color: rgba(2,20,18,0.95) }
+.brand .name, .authBrand .name { font-weight:700; color:var(--text); font-size:14px }
+
+/* optional background pattern class */
+.background-pattern { background-image: radial-gradient(rgba(255,255,255,0.01) 1px, transparent 1px); background-size:12px 12px; opacity:0.35 }
+
+/* small screens */
+@media (max-width:900px){ .leftPanel, .rightPanel { padding:10px; border-radius:8px } .loginCard { padding:18px; width:100% } .brand .name { display:none } }
     }
 
 </style>
