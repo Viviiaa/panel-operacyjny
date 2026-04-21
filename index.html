@@ -163,20 +163,24 @@ function setOcrStatus(s){ ocrStatus.textContent = 'OCR: ' + s; }
 function resetUI(){ fileList.innerHTML=''; tableEditor.innerHTML=''; sheetsList.innerHTML=''; canvasArea.innerHTML='<div class="small">Wybierz plik i stronę, aby zobaczyć podgląd</div>'; fileCount.textContent='Brak plików'; processedSheets=[]; currentView={fileIndex:null,pageIndex:0,canvas:null,imageData:null,sheetIndex:null}; setProgress(0); logEl.textContent=''; }
 
 /* Load Tesseract worker once */
-async function getTesseractWorker(){
-  if(tesseractWorker) return tesseractWorker;
-  tesseractWorker = Tesseract.createWorker({
+async function getTesseractWorker() {
+  if (tesseractWorker) return tesseractWorker;
+
+  // W v5 tworzymy workera od razu z językiem i loggerem
+  tesseractWorker = await Tesseract.createWorker(ocrLang || 'pol', 1, {
     logger: m => {
-      if(m.status === 'recognizing text' && m.progress) setProgress(10 + Math.round(m.progress*70));
-      log('Tesseract: ' + (m.status || '') + (m.progress ? ' ' + Math.round(m.progress*100)+'%':'' ));
+      if (m.status === 'recognizing text' && m.progress) {
+        setProgress(10 + Math.round(m.progress * 70));
+      }
+      log('Tesseract: ' + (m.status || '') + (m.progress ? ' ' + Math.round(m.progress * 100) + '%' : ''));
     }
   });
-  await tesseractWorker.load();
-  // try multiple langs; using 'pol+eng' for robustness
-  await tesseractWorker.loadLanguage(ocrLang).catch(()=>tesseractWorker.loadLanguage('eng'));
-  await tesseractWorker.initialize(ocrLang).catch(()=>tesseractWorker.initialize('eng'));
-  // set psm AUTO
-  await tesseractWorker.setParameters({ tessedit_pageseg_mode: 1 });
+
+  // Ustawiamy parametry (PSM 1 - automatyczna detekcja segmentów)
+  await tesseractWorker.setParameters({
+    tessedit_pageseg_mode: '1'
+  });
+
   return tesseractWorker;
 }
 
