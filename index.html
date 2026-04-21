@@ -847,7 +847,7 @@ async function generateExcelFile() {
                 messages: [{
                     role: "user",
                     content: `Działaj jako uniwersalny analityk dokumentów. Przeanalizuj treść i zidentyfikuj najważniejsze dane (np. strony umowy, daty, kwoty, przedmioty, numery seryjne). Stwórz tabelę Excel (format CSV), gdzie pierwszy wiersz to nagłówki dopasowane do typu dokumentu. Użyj średnika (;) jako JEDYNEGO separatora kolumn. Zwróć TYLKO I WYŁĄCZNIE surowe dane wiersz po wierszu. Absolutny zakaz pisania wstępów typu Oto tabela. Tylko czysty tekst do Excela. TEKST: ${currentText}`
-            })
+            }]
         });
 
         const data = await response.json();
