@@ -6,40 +6,96 @@
 <title>Konwerter → Excel (dark) — zoptymalizowany</title>
 
 <style>
-  :root{--bg:#07070a;--card:#0f1720;--muted:#94a3b8;--accent:#60a5fa;--glass:rgba(255,255,255,0.03);}
-  html,body{height:100%;margin:0;font-family:Inter,Segoe UI,Helvetica,Arial;background:linear-gradient(180deg,#020305 0%, #07101a 100%);color:#e6eef6}
-  .app{max-width:1200px;margin:26px auto;padding:18px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);border:1px solid rgba(255,255,255,0.03)}
-  header{display:flex;align-items:center;gap:14px}
-  .logo{width:52px;height:52px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#7dd3fc);display:flex;align-items:center;justify-content:center;color:#012; font-weight:700}
-  h1{margin:0;font-size:18px}
-  .lead{color:var(--muted);margin:0;font-size:13px}
-  .controls{display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap}
-  .filebtn{background:linear-gradient(90deg,#0ea5e9,#7dd3fc);color:#022;padding:10px 14px;border-radius:10px;cursor:pointer;border:none;font-weight:600}
-  input[type=file]{display:none}
-  .btn{background:var(--card);color:var(--accent);padding:8px 12px;border-radius:10px;border:1px solid rgba(125,211,252,0.06);cursor:pointer}
-  .pill{padding:6px 8px;background:rgba(255,255,255,0.02);border-radius:999px;color:var(--muted);font-size:13px}
-  .layout{display:grid;grid-template-columns: 420px 1fr 360px;gap:14px;margin-top:14px}
-  .panel{background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);padding:12px;border-radius:10px;min-height:300px;overflow:auto}
-  .small{font-size:13px;color:var(--muted)}
-  .file-item{display:flex;align-items:center;justify-content:space-between;padding:8px;border-radius:8px;margin-bottom:8px;background:rgba(255,255,255,0.01)}
-  .file-meta{display:flex;gap:8px;align-items:center}
-  .file-name{font-weight:600}
-  .stage{font-size:13px;color:var(--muted)}
-  .progress{height:8px;background:rgba(255,255,255,0.03);border-radius:999px;overflow:hidden;margin-top:8px}
-  .progress > i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--accent),#7dd3fc);transition:width 250ms}
-  .log{font-size:13px;color:var(--muted);white-space:pre-wrap}
-  .canvas-preview{width:100%;background:#020409;border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:8px;align-items:center}
-  canvas{max-width:100%;border-radius:6px;background:#000}
-  .table-edit{width:100%;overflow:auto;border-radius:6px;background:rgba(255,255,255,0.01);padding:6px}
-  table.editable{width:100%;border-collapse:collapse}
-  table.editable th, table.editable td{border:1px solid rgba(255,255,255,0.03);padding:6px 8px;font-size:13px;color:#e6eef6}
-  table.editable th{background:rgba(255,255,255,0.02);position:sticky;top:0;z-index:2}
-  td[contenteditable]{outline:none}
-  .controls-file-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-  .chip{padding:6px 8px;border-radius:999px;background:rgba(255,255,255,0.02);color:var(--muted);font-size:13px}
-  .footer{display:flex;justify-content:space-between;align-items:center;margin-top:12px;color:var(--muted);font-size:13px}
-  .warn{color:#fbbf24}
+    :root {
+        --bg-color: #050505;
+        --accent-color: #00ff41; /* Klasyczna zieleń Matrixa */
+        --text-color: #00ff41;
+        --border-color: #003b00;
+        --card-bg: #0a0a0a;
+        --btn-hover: #008f11;
+    }
+
+    body {
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        font-family: 'Courier New', Courier, monospace; /* Czcionka terminalowa */
+        margin: 0;
+        padding: 20px;
+    }
+
+    h1, h2, h3 {
+        color: var(--accent-color);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        border-bottom: 1px solid var(--accent-color);
+        padding-bottom: 5px;
+    }
+
+    .app {
+        border: 1px solid var(--accent-color);
+        padding: 20px;
+        box-shadow: 0 0 15px rgba(0, 255, 65, 0.1);
+    }
+
+    /* Przyciski w stylu terminala */
+    button, .filebtn {
+        background: transparent;
+        color: var(--accent-color);
+        border: 1px solid var(--accent-color);
+        padding: 10px 20px;
+        text-transform: uppercase;
+        cursor: pointer;
+        font-family: inherit;
+        transition: all 0.3s;
+    }
+
+    button:hover, .filebtn:hover {
+        background: var(--accent-color);
+        color: #000;
+        box-shadow: 0 0 10px var(--accent-color);
+    }
+
+    /* Karty i sekcje */
+    .file-item, .export-item, .preview-container {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        margin-bottom: 10px;
+        padding: 10px;
+    }
+
+    /* Logi i tekst OCR */
+    #logs, #ocrTextarea {
+        background: #000 !important;
+        color: var(--accent-color) !important;
+        border: 1px solid var(--accent-color) !important;
+        font-family: 'Courier New', monospace;
+    }
+
+    /* Pasek postępu */
+    .progress-bar {
+        background-color: var(--border-color);
+        border: 1px solid var(--accent-color);
+    }
+
+    .progress-fill {
+        background-color: var(--accent-color);
+    }
+
+    /* Inputy */
+    input, textarea {
+        background: #000;
+        color: var(--accent-color);
+        border: 1px solid var(--border-color);
+    }
+
+    ::-webkit-scrollbar {
+        width: 5px;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: var(--accent-color);
+    }
 </style>
+
 
 <!-- Libraries -->
 <script src="https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
