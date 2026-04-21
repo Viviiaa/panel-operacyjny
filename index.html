@@ -6,123 +6,121 @@
 <title>SYSTEM OPERACYJNY: WYROCZNIA</title>
 
 <style>
-       :root {
+        :root {
         --neon: #00ff41;
         --white: #ffffff;
-        --glass: rgba(5, 5, 5, 0.92);
-        --dim: rgba(0, 255, 65, 0.15);
-        --glow: 0 0 30px rgba(0, 255, 65, 0.3);
+        --glass: rgba(10, 10, 10, 0.96);
+        --panel-bg: rgba(20, 20, 20, 0.6);
+        --border: rgba(0, 255, 65, 0.15);
+        --glow: 0 0 30px rgba(0, 255, 65, 0.2);
     }
 
     body, html {
-        margin: 0; padding: 0;
-        background: #000 !important;
-        color: var(--neon) !important;
-        font-family: 'Segoe UI', sans-serif;
-        min-height: 100vh;
-        overflow-x: hidden;
+        margin: 0; padding: 0; background: #000; color: var(--neon);
+        font-family: 'Inter', 'Segoe UI', sans-serif; overflow-x: hidden;
     }
 
-    /* MATRIX W TLE - DLA KLIMATU */
-    #matrix-bg { position: fixed; inset: 0; z-index: -1; opacity: 0.15; pointer-events: none; }
-
-    /* --- TWOJA ENERGIA: POWRÓT PORTALU --- */
+    /* --- TWOJE IDEALNE LOGOWANIE (ZABLOKOWANE) --- */
     #loginOverlay {
         position: fixed; inset: 0; background: #000; z-index: 10000;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
     }
-
-    #loginOverlay::before, .oracle-avatar::before {
+    #loginOverlay::before {
         content: "Ξ"; font-size: 110px; color: var(--white);
-        text-shadow: 0 0 30px var(--neon), 0 0 60px var(--neon);
-        z-index: 5; position: relative;
-        animation: avatar-float 4s infinite ease-in-out;
+        text-shadow: 0 0 40px var(--neon); margin-bottom: 50px;
+        animation: breath-gate 4s infinite ease-in-out;
     }
-
-    /* WIRUJĄCA ENERGIA - TO CO BYŁO SUPER */
-    #loginOverlay::after, .oracle-avatar::after {
-        content: ""; position: absolute;
-        width: 300px; height: 300px;
-        border: 2px solid var(--neon);
-        border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
-        animation: rotate-portal 8s infinite linear;
-        box-shadow: inset 0 0 50px var(--neon), 0 0 30px var(--neon);
-        opacity: 0.4;
+    #loginOverlay::after {
+        content: ""; position: absolute; width: 300px; height: 300px;
+        border: 2px solid var(--neon); border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+        animation: rotate-portal 8s infinite linear; box-shadow: inset 0 0 50px var(--neon); opacity: 0.4;
     }
-
-    @keyframes rotate-portal { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-    @keyframes avatar-float {
-        0%, 100% { transform: translateY(0) scale(1); }
-        50% { transform: translateY(-15px) scale(1.05); }
-    }
-
     #accessCode {
         background: transparent; border: none; border-bottom: 3px solid var(--white);
-        color: var(--white); font-size: 4rem; text-align: center; width: 500px;
-        outline: none; letter-spacing: 20px; transition: 0.5s;
-        text-shadow: 0 0 20px var(--white); margin-top: 60px;
+        color: var(--white); font-size: 3.5rem; text-align: center; width: 450px; outline: none; letter-spacing: 15px;
     }
+    @keyframes rotate-portal { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes breath-gate { 0%, 100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.05); opacity: 1; } }
 
-    /* --- INTERFEJS SYSTEMOWY - DYNAMIKA I SZKŁO --- */
+    /* --- SYSTEM: NOWOCZESNA ARCHITEKTURA --- */
     .app {
-        max-width: 1750px; margin: 40px auto; padding: 50px;
-        background: var(--glass); backdrop-filter: blur(40px);
-        border: 1px solid var(--dim); border-radius: 45px;
-        box-shadow: 0 0 100px rgba(0,0,0,1);
-        position: relative; overflow: hidden;
+        max-width: 1750px; margin: 30px auto; padding: 50px;
+        background: var(--glass); backdrop-filter: blur(60px);
+        border: 1px solid var(--border); border-radius: 45px;
+        box-shadow: 0 80px 150px rgba(0,0,0,1); position: relative;
     }
 
-    /* LATAJĄCY SKANER - BAJER W ŚRODKU SYSTEMU */
+    /* MODERNE LOGO W ROGU SYSTEMU */
+    .app::after {
+        content: "Ξ"; position: absolute; top: 40px; right: 60px;
+        font-size: 30px; color: var(--white); opacity: 0.8;
+        text-shadow: 0 0 15px var(--neon); animation: logo-float 5s infinite ease-in-out;
+    }
+    @keyframes logo-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+    /* DYNAMICZNY SKANER (LATAJĄCY PASEK) */
     .app::before {
         content: ""; position: absolute; top: 0; left: -100%; width: 100%; height: 2px;
         background: linear-gradient(90deg, transparent, var(--neon), transparent);
-        animation: scan-line 5s linear infinite; z-index: 100;
+        animation: scan-modern 6s linear infinite; z-index: 10;
     }
-    @keyframes scan-line { 0% { left: -100%; } 100% { left: 100%; } }
+    @keyframes scan-modern { 0% { left: -100%; } 100% { left: 100%; } }
 
-    /* PANELE - REAGUJĄCE SZKŁO */
+    /* PANELE - NOWOCZESNE KARTY */
     .panel, #leftPanel, #centerPanel, #rightPanel, .section-card {
-        background: rgba(0, 0, 0, 0.7) !important;
-        border: 1px solid var(--dim) !important;
-        border-radius: 25px !important; padding: 30px !important;
-        margin-bottom: 25px; box-shadow: inset 0 0 30px #000;
-        transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        background: var(--panel-bg) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 25px !important; padding: 35px !important;
+        margin-bottom: 25px; transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        overflow: hidden;
     }
     .panel:hover {
-        border-color: var(--neon) !important;
-        box-shadow: 0 0 30px rgba(0, 255, 65, 0.1);
-        transform: translateY(-5px) scale(1.01);
+        border-color: rgba(0, 255, 65, 0.4) !important;
+        background: rgba(30, 30, 30, 0.8) !important;
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 20px 50px rgba(0,255,65,0.05);
     }
 
-    /* BIAŁE NAGŁÓWKI - NAJWYŻSZA CZYTELNOŚĆ */
+    /* BIAŁE NAGŁÓWKI - SUPREME CLEAN STYLE */
     strong, h2, .small strong, .panel-title {
         color: var(--white) !important; text-transform: uppercase !important;
-        letter-spacing: 5px !important; font-size: 0.8rem !important;
-        border-left: 4px solid var(--neon); padding-left: 20px;
-        margin-bottom: 25px; display: block;
-        text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+        font-weight: 800 !important; letter-spacing: 5px !important; font-size: 0.75rem !important;
+        border-left: 5px solid var(--neon); padding-left: 20px;
+        margin-bottom: 30px; display: block; opacity: 0.95;
     }
 
-    /* PRZYCISKI - NEONOWE NARZĘDZIA Z PULSEM */
+    /* PRZYCISKI - NOWOCZESNE CAPSULES */
     button, .btn, .filebtn {
-        background: transparent !important; border: 1px solid var(--neon) !important;
-        color: var(--neon) !important; padding: 14px 30px !important;
-        border-radius: 60px !important; font-weight: 900;
+        background: rgba(0, 255, 65, 0.03) !important;
+        border: 1px solid var(--neon) !important;
+        color: var(--neon) !important; padding: 16px 35px !important;
+        border-radius: 100px !important; font-weight: 900;
         text-transform: uppercase; letter-spacing: 3px; font-size: 0.7rem;
-        cursor: pointer; transition: 0.3s;
+        cursor: pointer; transition: 0.4s all;
     }
-    button:hover {
+    button:hover, .filebtn:hover {
         background: var(--neon) !important; color: #000 !important;
-        box-shadow: 0 0 40px var(--neon);
+        box-shadow: 0 0 40px var(--neon); transform: scale(1.05);
     }
 
-    /* EDYTOR I LOGI */
+    /* TERMINALE - GŁĘBIA SYSTEMOWA */
     #log, #logs, #ocrTextarea {
-        background: #000 !important; border: 1px solid #151515 !important;
-        color: var(--neon) !important; font-family: monospace;
-        padding: 25px; border-radius: 20px; line-height: 1.8;
+        background: rgba(0,0,0,0.85) !important;
+        border: 1px solid #1a1a1a !important;
+        color: var(--neon) !important; font-family: 'JetBrains Mono', monospace;
+        font-size: 14px; line-height: 1.8; padding: 30px; border-radius: 20px;
+        box-shadow: inset 0 0 20px #000; transition: 0.3s;
     }
-    #ocrTextarea { border-left: 4px solid var(--neon) !important; }
+    #ocrTextarea:focus { border-left: 5px solid var(--neon) !important; outline: none; }
+
+    /* DEKORACJE: PULSUJĄCE STATUSY */
+    .pill, .chip {
+        background: #000; border: 1px solid var(--border); color: #fff;
+        padding: 6px 16px; border-radius: 8px; font-size: 10px;
+        text-transform: uppercase; animation: status-pulse 2s infinite;
+    }
+    @keyframes status-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
     }
 
 </style>
