@@ -47,7 +47,6 @@
 <script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
-
 </head>
 <body>
 <div class="app" role="main">
@@ -149,6 +148,7 @@ const downloadJSONBtn = document.getElementById('downloadJSON');
 const clearAllBtn = document.getElementById('clearAll');
 const langChip = document.getElementById('langChip');
 const autoFixChip = document.getElementById('autoFixChip');
+
 
 let files = [];
 let processedSheets = []; // {fileIndex, pageIndex, name, rows}
@@ -627,23 +627,45 @@ reRunOCRBtn.addEventListener('click', async ()=>{
 });
 
 /* Export to XLSX */
-exportBtn.addEventListener('click', ()=>{
-  if(!processedSheets.length){ log('Brak arkuszy do eksportu'); return; }
+exportBtn.addEventListener('click', () => {
+  if (!processedSheets.length) { log('Brak arkuszy do eksportu'); return; }
   const wb = XLSX.utils.book_new();
-  processedSheets.forEach(s=>{
-    const ws = XLSX.utils.aoa_to_sheet(s.rows);
-    let sheetName = s.name.replace(/[^A-Za-z0-9\\-_ ]/g,'').slice(0,31) || 'Sheet';
-    // ensure unique
-    let base = sheetName; let i=1;
-    while(wb.SheetNames.includes(sheetName)) sheetName = base + '_' + (i++);
+
+  processedSheets.forEach(s => {
+    // 1. MAGIA: Dzielimy tekst na kolumny tam, gdzie są min. 2 spacje
+    const formattedRows = s.rows.map(row => {
+      if (typeof row === 'string') return row.trim().split(/\s{2,}/);
+      if (Array.isArray(row) && row.length === 1) return String(row[0]).trim().split(/\s{2,}/);
+      return row;
+    });
+
+    // 2. Tworzymy arkusz z sformatowanych danych
+    const ws = XLSX.utils.aoa_to_sheet(formattedRows);
+
+    // 3. UPIĘKSZACZ: Automatyczne dopasowanie szerokości kolumn
+    if (formattedRows.length > 0) {
+      const colWidths = formattedRows[0].map((_, i) => {
+        return {
+          wch: Math.max(...formattedRows.map(row => row[i] ? row[i].toString().length : 10)) + 5
+        };
+      });
+      ws['!cols'] = colWidths;
+    }
+    
+    // 4. Czyszczenie nazwy arkusza (limit 31 znaków dla Excela)
+    let sheetName = s.name.replace(/[\[\]\*\?\/\\:]/g, '').slice(0, 31) || 'Sheet';
+    let base = sheetName, i = 1;
+    while (wb.SheetNames.includes(sheetName)) sheetName = base.slice(0, 28) + '_' + (i++);
+    
     XLSX.utils.book_append_sheet(wb, ws, sheetName);
   });
-  const wbout = XLSX.write(wb, {bookType:'xlsx', type:'array'});
-  const blob = new Blob([wbout], {type:'application/octet-stream'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = 'export_tables.xlsx'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-  log('Eksport do .xlsx wygenerowany.');
+
+  // 5. Generowanie i pobieranie pliku
+  XLSX.writeFile(wb, 'wyrocznia_export.xlsx');
+  log('Eksport do .xlsx wygenerowany (kolumny dopasowane i podzielone).');
 });
+
+
 
 /* Download JSON */
 downloadJSONBtn.addEventListener('click', ()=>{
