@@ -7,144 +7,72 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 
 <style>
-     :root{
-    --bg:#071018; --panel:#0e1720; --muted:#8aa0b3;
-    --accent:#00f5a2; --accent-2:#7afcff; --danger:#ff6b6b;
-    --glass: rgba(255,255,255,0.03);
-    --glass-2: rgba(255,255,255,0.02);
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{
-    margin:0; font-family:Inter,system-ui,Segoe UI,Arial;
-    background:
-      radial-gradient(600px 300px at 10% 10%, rgba(0,245,162,0.06), transparent 8%),
-      radial-gradient(500px 200px at 90% 90%, rgba(122,252,255,0.04), transparent 8%),
-      linear-gradient(180deg, #041018 0%, #071018 100%);
-    color:#d9f7ee; -webkit-font-smoothing:antialiased;
-    padding:28px;
-  }
+     :root {
+            --acc: #00ff41;
+            --dim: #003b00;
+            --glass: rgba(10, 10, 10, 0.9);
+            --glow: 0 0 25px rgba(0, 255, 65, 0.3);
+        }
 
-  .container{
-    max-width:1200px; margin:0 auto; display:grid;
-    grid-template-columns: 320px 1fr; gap:20px;
-  }
+        body, html {
+            margin: 0; padding: 0; background: #000; color: var(--acc);
+            font-family: 'Segoe UI', sans-serif; min-height: 100vh; overflow-x: hidden;
+        }
 
-  /* SIDEBAR */
-  .sidebar{
-    background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
-    border:1px solid rgba(255,255,255,0.04);
-    padding:18px; border-radius:14px; height:calc(100vh - 56px);
-    display:flex; flex-direction:column; gap:18px; position:sticky; top:28px;
-    backdrop-filter: blur(6px);
-  }
-  .profile{
-    display:flex; gap:12px; align-items:center;
-  }
-  .avatar{
-    width:64px; height:64px; border-radius:12px;
-    background:linear-gradient(135deg,var(--accent),var(--accent-2));
-    box-shadow:0 6px 18px rgba(0,245,162,0.12), inset 0 -6px 18px rgba(0,0,0,0.18);
-    display:flex; align-items:center; justify-content:center;
-    font-family: "JetBrains Mono", monospace; font-weight:700; color:#021214; font-size:20px;
-  }
-  .profile-info h3{margin:0;font-size:16px}
-  .profile-info p{margin:0;font-size:12px;color:var(--muted)}
+        /* MATRIX TŁO - NA CAŁY EKRAN */
+        #matrix-bg { position: fixed; inset: 0; z-index: -1; opacity: 0.15; }
 
-  .nav{display:flex;flex-direction:column;gap:8px;margin-top:8px}
-  .nav a{
-    display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px;
-    color:var(--accent-2); text-decoration:none; font-weight:600;
-    background:linear-gradient(90deg, rgba(122,252,255,0.02), transparent);
-    border:1px solid rgba(122,252,255,0.02);
-  }
-  .nav a.active{background:linear-gradient(90deg, rgba(0,245,162,0.06), transparent); color:var(--accent)}
+        /* PULSUJĄCY AVATAR Ξ */
+        .oracle-avatar {
+            width: 80px; height: 80px; margin: 0 auto 20px; border: 2px solid var(--acc);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            box-shadow: var(--glow); animation: pulse 3s infinite ease-in-out; position: relative;
+        }
+        .oracle-avatar::before { content: "Ξ"; font-size: 40px; text-shadow: 0 0 15px var(--acc); }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
 
-  .status{
-    margin-top:auto; padding:12px;border-radius:10px;background:var(--glass);
-    display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted);
-  }
+        /* EKRAN LOGOWANIA - WIELKI I MROCZNY */
+        #loginOverlay {
+            position: fixed; inset: 0; background: #000; z-index: 10000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
 
-  /* MAIN */
-  .main{
-    display:grid; grid-template-rows: auto 1fr; gap:18px;
-  }
-  .top-row{display:flex;gap:18px;align-items:center}
-  .search{
-    flex:1; display:flex; background:var(--glass-2); padding:10px;border-radius:12px; align-items:center;
-    border:1px solid rgba(255,255,255,0.02);
-  }
-  .search input{
-    background:transparent;border:0;color:inherit;outline:none;font-size:14px;width:100%;
-    font-family:Inter;
-  }
-  .actions{display:flex;gap:10px;align-items:center}
-  .btn{
-    padding:8px 12px;border-radius:10px;background:linear-gradient(90deg, rgba(0,245,162,0.08), transparent);
-    border:1px solid rgba(0,245,162,0.08); color:var(--accent); font-weight:700; cursor:pointer;
-  }
+        /* GŁÓWNY INTERFEJS - WIELKI, SZKLANY, NOWOCZESNY */
+        .app {
+            max-width: 1400px; margin: 40px auto; background: var(--glass);
+            backdrop-filter: blur(20px); border: 2px solid var(--dim); border-radius: 25px;
+            padding: 40px; box-shadow: 0 0 60px #000; display: none; flex-direction: column; gap: 30px;
+        }
 
-  /* GRID CONTENT */
-  .grid{
-    display:grid; grid-template-columns: 1fr 360px; gap:18px;
-  }
+        header { text-align: center; border-bottom: 1px solid var(--dim); padding-bottom: 25px; }
+        h1 { font-family: 'Courier New', monospace; letter-spacing: 10px; margin: 0; text-transform: uppercase; font-size: 2.5rem; }
 
-  .card{
-    background:linear-gradient(180deg, rgba(255,255,255,0.015), transparent);
-    border:1px solid rgba(255,255,255,0.03); border-radius:12px; padding:16px;
-    box-shadow: 0 8px 30px rgba(2,17,20,0.4);
-  }
-  .metrics{display:flex;gap:12px;flex-wrap:wrap}
-  .metric{
-    flex:1 1 140px; padding:12px;border-radius:10px;background:linear-gradient(180deg, rgba(0,0,0,0.02), transparent);
-    border:1px solid rgba(255,255,255,0.02);
-  }
-  .metric h4{margin:0;font-size:12px;color:var(--muted)}
-  .metric p{margin:6px 0 0;font-size:20px;font-weight:800;color:var(--accent)}
+        /* UKŁAD PANELOWY - DUŻE OKNA */
+        .main-grid { display: grid; grid-template-columns: 450px 1fr; gap: 40px; }
+        .panel { background: rgba(20, 20, 20, 0.7); border: 1px solid var(--dim); border-radius: 20px; padding: 30px; box-shadow: inset 0 0 20px #000; }
+        
+        h2 { color: #fff; font-size: 1rem; text-transform: uppercase; border-bottom: 1px solid var(--dim); padding-bottom: 12px; margin-top: 0; letter-spacing: 2px; }
+        
+        /* TERMINAL I EDYTOR */
+        #logs, #ocrTextarea { 
+            background: #000; border: 1px solid #1a1a1a; color: var(--acc); 
+            font-family: 'Courier New', monospace; font-size: 15px; padding: 20px; border-radius: 15px; 
+        }
+        #logs { height: 300px; overflow-y: auto; line-height: 1.6; }
+        #ocrTextarea { width: 100%; height: 500px; box-sizing: border-box; resize: vertical; outline: none; border-left: 4px solid var(--dim); }
 
-  /* TERMINAL */
-  .terminal{
-    background:linear-gradient(180deg,#02060a,#061018); padding:14px;border-radius:10px; font-family: "JetBrains Mono", monospace;
-    color:#8fead0; height:320px; overflow:auto; border:1px solid rgba(0,255,150,0.06);
-  }
-  .term-line{display:flex;gap:8px}
-  .prompt{color:#5fd9b3}
-  .cmd{color:#b9fff0}
+        /* PRZYCISKI - NEONOWY GLOW */
+        input { background: transparent; border: 1px solid var(--acc); color: var(--acc); padding: 20px; border-radius: 50px; text-align: center; font-size: 2rem; outline: none; width: 350px; box-shadow: var(--glow); }
+        button { 
+            background: linear-gradient(180deg, #002200 0%, #000 100%);
+            color: var(--acc); border: 1px solid var(--acc); padding: 15px 30px; 
+            border-radius: 12px; cursor: pointer; font-weight: bold; text-transform: uppercase; 
+            transition: 0.3s; margin-top: 10px; letter-spacing: 2px;
+        }
+        button:hover { background: var(--acc); color: #000; box-shadow: 0 0 30px var(--acc); transform: translateY(-3px); }
 
-  /* AI VISUAL */
-  .wave{
-    height:120px; display:flex;align-items:center;justify-content:center; gap:8px;
-    background: linear-gradient(180deg, rgba(10,20,25,0.5), transparent);
-    border-radius:8px; overflow:hidden;
-  }
-  .bar{width:6px;height:20px;background:linear-gradient(180deg,var(--accent),var(--accent-2));border-radius:4px; animation:beat 1s infinite ease-in-out;}
-  .bar.b2{animation-duration:0.9s}
-  .bar.b3{animation-duration:1.2s}
-  .bar.b4{animation-duration:0.7s}
-  .bar.b5{animation-duration:1.4s}
-  @keyframes beat{
-    0%{transform:scaleY(.3);opacity:.6}
-    50%{transform:scaleY(1.6);opacity:1}
-    100%{transform:scaleY(.3);opacity:.6}
-  }
-
-  /* PROFILE DETAILS */
-  .bio{margin-top:8px;color:var(--muted);font-size:13px}
-
-  /* settings modal */
-  .modal{
-    position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(2,6,8,0.5);
-  }
-  .modal.open{display:flex}
-  .modal .panel{width:560px;background:linear-gradient(180deg,#081217,#071018);padding:18px;border-radius:12px;border:1px solid rgba(255,255,255,0.03)}
-  .form-row{display:flex;gap:8px;margin-bottom:10px}
-  .input{flex:1;padding:10px;border-radius:8px;background:#041018;border:1px solid rgba(255,255,255,0.03);color:var(--muted)}
-
-  /* responsiveness */
-  @media (max-width:980px){
-    .container{grid-template-columns:1fr; padding:18px}
-    .sidebar{position:relative;height:auto}
-    .grid{grid-template-columns:1fr}
+        /* ALARM BŁĘDU */
+        #errorOverlay { position: fixed; inset: 0; background: rgba(150,0,0,0.95); z-index: 10001; display: none; flex-direction: column; align-items: center; justify-content: center; }
   }
 </style>
 
@@ -159,32 +87,37 @@
 
     <canvas id="matrix-bg"></canvas>
 
+<!-- EKRAN LOGOWANIA -->
 <div id="loginOverlay">
     <div class="oracle-avatar"></div>
-    <h1>WYROCZNIA // SYSTEM DOSTĘPU</h1>
+    <h1>SYSTEM OPERACYJNY: WYROCZNIA</h1>
     <input type="password" id="accessCode" placeholder="••••••••">
-    <button onclick="checkAccess()" style="width: 250px; margin-top: 30px;">ZALOGUJ DO TERMINALA</button>
+    <button onclick="checkAccess()">AUTORYZUJ DOSTĘP</button>
 </div>
 
-<div class="app">
+<!-- GŁÓWNA APLIKACJA -->
+<div class="app" id="mainApp">
     <header>
-        <div class="oracle-avatar"></div>
-        <h1>WYROCZNIA // DATA CORE</h1>
-        <p style="opacity: 0.6; letter-spacing: 2px;">LOGIC-BASED DATA EXTRACTION & ANALYSIS</p>
+        <div class="oracle-avatar" style="width: 50px; height: 50px; font-size: 20px;"></div>
+        <h1>WYROCZNIA // DATA INTELLIGENCE SYSTEM</h1>
+        <p style="opacity: 0.6; letter-spacing: 3px; margin-top: 10px;">AUTONOMICZNA EKSTRAKCJA STRUKTURALNA I WERYFIKACJA LOGIKI</p>
     </header>
 
-    <div class="main-grid">
+   <div class="main-grid">
+        <!-- LEWY PANEL -->
         <div class="panel">
-            <strong>KONSOLA OPERACYJNA</strong>
-            <input type="file" id="f" multiple style="display:none" onchange="handleFiles(this.files)">
-            <button onclick="document.getElementById('f').click()" style="margin: 20px 0;">+ IMPORTUJ DATASET</button>
+            <h2>KONSOLA OPERACYJNA // LOGI</h2>
+            <input type="file" id="fIn" multiple style="display:none" onchange="handleFiles(this.files)">
+            <button onclick="document.getElementById('fIn').click()" style="width: 100%;">+ IMPORTUJ DANE SUROWE</button>
             <div id="logs"></div>
-            <button onclick="generateExcel()" style="margin-top: 20px; background: var(--acc); color: #000;">KOMPILUJ RAPORT .XLSX</button>
-        </div>
+            <button onclick="generateExcel()" style="width: 100%; margin-top: 25px; background: var(--acc); color: #000;">KOMPILUJ RAPORT .XLSX</button>
+        </div> 
+        
+        <!-- PRAWY PANEL -->
         <div class="panel">
-            <strong>EDYCJA STRUKTURALNA // MANUAL OVERRIDE</strong>
+            <h2>MANUAL OVERRIDE // EDYTOR DANYCH</h2>
             <textarea id="ocrTextarea" placeholder="Oczekiwanie na strumień danych..."></textarea>
-            <button onclick="saveChanges()" style="margin-top: 15px;">ZATWIERDŹ ZMIANY</button>
+            <button onclick="saveChanges()" style="width: 100%; margin-top: 20px;">ZAPISZ KOREKTĘ (SYSTEM SYNC)</button>
         </div>
     </div>
 </div>
@@ -284,35 +217,24 @@
 <script>
 
      // --- ANIMACJA MATRIX ---
-   onst canvas = document.getElementById('matrix-bg');
-const ctx = canvas.getContext('2d');
-
-function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-}
-
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas(); // Startujemy z pełnym rozmiarem
-
-const chars = "Ξ0123456789WYROCZNIA";
-const fontSize = 16; // Nieco większe znaki, żeby było je widać!
-const columns = canvas.width / fontSize;
-const drops = Array(Math.floor(columns)).fill(1);
-
-function drawMatrix() {
-    ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "#00ff41";
-    ctx.font = fontSize + "px monospace";
-    for (let i = 0; i < drops.length; i++) {
-        const text = chars[Math.floor(Math.random() * chars.length)];
-        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
-        drops[i]++;
+    // --- SILNIK MATRIXA (NA CAŁY EKRAN) ---
+    const canvas = document.getElementById('matrix-bg');
+    const ctx = canvas.getContext('2d');
+    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    window.onresize = resize; resize();
+    const chars = "Ξ0123456789WYROCZNIA";
+    const drops = Array(Math.floor(canvas.width/14)).fill(1);
+    function draw() {
+        ctx.fillStyle = "rgba(0,0,0,0.05)"; ctx.fillRect(0,0,canvas.width,canvas.height);
+        ctx.fillStyle = "#00ff41"; ctx.font = "14px monospace";
+        drops.forEach((y, i) => {
+            const text = chars[Math.floor(Math.random()*chars.length)];
+            ctx.fillText(text, i*14, y*14);
+            if(y*14 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+            drops[i]++;
+        });
     }
-}
-setInterval(drawMatrix, 35);
+    setInterval(draw, 35);
 
     async function handleFiles(files) {
         processedSheets = [];
