@@ -6,90 +6,116 @@
 <title>Konwerter → Excel (dark) — zoptymalizowany</title>
 
 <style>
-   :root {
-        --acc: #00ff41;
-        --glass: rgba(12, 12, 12, 0.95);
-        --border: 1px solid rgba(0, 255, 65, 0.2);
-        --glow: 0 0 30px rgba(0, 255, 65, 0.1);
+    :root {
+        --acc: #00ff41; /* Twoja neonowa zieleń */
+        --glass: rgba(10, 10, 10, 0.95);
+        --dim: rgba(0, 255, 65, 0.15);
+        --glow: 0 0 30px rgba(0, 255, 65, 0.15);
     }
 
     body, html {
-        margin: 0; padding: 0; background: #000; color: var(--acc);
-        font-family: 'Segoe UI', sans-serif; min-height: 100vh; overflow-x: hidden;
+        margin: 0; padding: 0;
+        background: #000;
+        color: var(--acc);
+        font-family: 'Segoe UI', sans-serif;
+        min-height: 100vh;
+        overflow-x: hidden;
     }
 
-    /* --- EKRAN LOGOWANIA: TWOJA BRAMA MOCY --- */
+    /* AVATAR Ξ - TWOJA SYGNATURA (Styl dla Twojego diva) */
+    .oracle-avatar {
+        width: 80px; height: 80px;
+        margin: 0 auto 20px;
+        position: relative;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .oracle-avatar::before {
+        content: "Ξ"; font-size: 40px; text-shadow: 0 0 20px var(--acc);
+        animation: breath 4s infinite;
+    }
+    @keyframes breath { 0%, 100% { opacity: 0.5; transform: scale(1); } 50% { opacity: 1; transform: scale(1.1); } }
+
+    /* TWOJA STRUKTURA PANELOWA (LAYOUT) */
+    .app {
+        max-width: 1650px;
+        margin: 30px auto;
+        background: var(--glass);
+        backdrop-filter: blur(40px);
+        border: 1px solid var(--dim);
+        border-radius: 30px;
+        padding: 40px;
+        box-shadow: 0 50px 100px rgba(0,0,0,1);
+    }
+
+    /* Styl dla Twoich trzech paneli */
+    #leftPanel, #centerPanel, #rightPanel, .panel {
+        background: rgba(0, 0, 0, 0.6) !important;
+        border: 1px solid var(--dim) !important;
+        border-radius: 20px !important;
+        padding: 25px !important;
+        box-shadow: inset 0 0 20px #000;
+    }
+
+    /* TWOJE BIAŁE NAGŁÓWKI (KONTRAST) */
+    strong, h2, .small strong {
+        color: #ffffff !important;
+        text-transform: uppercase !important;
+        letter-spacing: 4px !important;
+        font-size: 0.75rem !important;
+        border-bottom: 1px solid var(--dim);
+        padding-bottom: 12px;
+        margin-bottom: 20px;
+        display: block;
+        opacity: 0.9;
+    }
+
+    /* EDYTOR I LOGI - CZARNE I OSTRE */
+    #log, #logs, #ocrTextarea, #tableEditor {
+        background: #000 !important;
+        border: 1px solid #151515 !important;
+        color: var(--acc) !important;
+        font-family: 'Courier New', monospace;
+        padding: 15px;
+        border-radius: 12px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* TWOJE PRZYCISKI (NEONOWE TABLETKI) */
+    button, .btn, .filebtn {
+        background: transparent !important;
+        border: 1px solid var(--acc) !important;
+        color: var(--acc) !important;
+        padding: 12px 25px !important;
+        border-radius: 50px !important;
+        font-weight: bold;
+        text-transform: uppercase;
+        font-size: 0.7rem;
+        cursor: pointer;
+        transition: 0.3s;
+        display: inline-block;
+    }
+
+    button:hover, .btn:hover {
+        background: var(--acc) !important;
+        color: #000 !important;
+        box-shadow: 0 0 30px var(--acc);
+    }
+
+    /* EKRAN LOGOWANIA */
     #loginOverlay {
         position: fixed; inset: 0; background: #000; z-index: 10000;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
     }
-
-    /* AVATAR Ξ - LOGO WYROCZNI */
-    .oracle-avatar, #loginOverlay::before {
-        content: "Ξ"; font-size: 80px; color: var(--acc);
-        text-shadow: 0 0 30px var(--acc); margin-bottom: 40px;
-        animation: breath 4s infinite ease-in-out;
-        display: flex; align-items: center; justify-content: center;
-    }
-    @keyframes breath { 0%, 100% { opacity: 0.4; transform: scale(0.95); } 50% { opacity: 1; transform: scale(1.05); } }
-
     #accessCode {
         background: transparent; border: none; border-bottom: 2px solid var(--acc);
         color: var(--acc); font-size: 2.5rem; text-align: center; width: 350px;
         outline: none; letter-spacing: 10px; margin-bottom: 30px;
     }
 
-    /* --- INTERFEJS GŁÓWNY: SZKLANA WIEŻA --- */
-    .app {
-        max-width: 1600px; margin: 40px auto; padding: 40px;
-        background: var(--glass); backdrop-filter: blur(40px);
-        border: var(--border); border-radius: 30px;
-        box-shadow: 0 50px 150px rgba(0,0,0,1);
-    }
-
-    /* LAYOUT TRZYKOLUMNOWY */
-    .layout {
-        display: grid; grid-template-columns: 400px 1fr 400px; gap: 25px; align-items: start;
-    }
-
-    /* PANELE - DYMIONE SZKŁO */
-    .panel, .section-card {
-        background: rgba(0,0,0,0.6) !important;
-        border: 1px solid rgba(0, 255, 65, 0.1) !important;
-        border-radius: 20px !important; padding: 25px !important;
-        box-shadow: inset 0 0 20px #000; margin-bottom: 20px;
-    }
-
-    /* BIAŁE NAGŁÓWKI - CZYTELNOŚĆ ARCHITEKTKI */
-    strong, h2, .small strong {
-        color: #FFFFFF !important;
-        text-transform: uppercase; letter-spacing: 4px; font-size: 0.75rem;
-        display: block; border-bottom: 1px solid var(--dim);
-        padding-bottom: 12px; margin-bottom: 15px; opacity: 0.9;
-    }
-
-    /* PRZYCISKI - NEONOWE PILLS */
-    button, .filebtn, .btn {
-        background: transparent !important;
-        border: 1px solid var(--acc) !important;
-        color: var(--acc) !important;
-        padding: 12px 25px !important; border-radius: 50px !important;
-        font-weight: bold; text-transform: uppercase; letter-spacing: 2px;
-        font-size: 0.7rem; cursor: pointer; transition: 0.4s;
-        margin: 5px 0; display: inline-block; text-align: center;
-    }
-    button:hover, .filebtn:hover { background: var(--acc) !important; color: #000 !important; box-shadow: 0 0 30px var(--acc); }
-
-    /* EDYTORY - PORZĄDEK W DANYCH */
-    #ocrTextarea, #tableEditor, #log {
-        background: #000 !important; border: 1px solid #111 !important;
-        color: var(--acc) !important; font-family: 'Courier New', monospace;
-        padding: 15px; border-radius: 12px; width: 100%; box-sizing: border-box;
-    }
-
-    /* STOPKA MODUŁOWA */
-    .footer { margin-top: 30px; border-top: 1px solid rgba(0,255,65,0.1); padding-top: 20px; font-size: 10px; opacity: 0.3; }
-
+    /* STOPKA I STATUSY */
+    .footer { opacity: 0.3; font-size: 10px; border-top: 1px solid var(--dim); padding-top: 15px; margin-top: 20px; }
+    .pill, .chip { font-size: 10px; color: #fff; border: 1px solid var(--dim); padding: 4px 10px; border-radius: 4px; }
     }
 
 </style>
@@ -171,11 +197,6 @@
         <button id="nextPage" class="btn">▶</button>
         <div class="pill" id="ocrStatus">SILNIK OCR: STANDBY</div>
         <div class="progress" style="flex:1"><i id="progFill"></i></div>
-      </div>
-
-      <div style="margin-top:12px">
-        <div class="small"><strong>EDYCJA STRUKTURY DANYCH PRZED EKSPORTEM</strong></div>
-        <div class="table-edit" id="tableEditor" style="margin-top:8px;min-height:160px"></div>
       </div>
 
       <div style="margin-top:8px;display:flex;gap:8px">
@@ -697,8 +718,8 @@ applyChangesBtn.addEventListener('click', () => {
     if (idx === null || idx === undefined) { log('STATUS: Brak aktywnego datasetu do zapisu.'); return; }
     
     // Pobieramy tekst z Twojego czarnego edytora
-    const rawText = document.getElementById('ocrTextarea').value;
-    
+    document.getElementById('ocrTextarea').value = ret.data.text;
+    const rawText = ret.data.text;
     // Zamieniamy tekst z powrotem na wiersze dla Excela
     const newRows = rawText.split('\n').map(line => line.trim().split(/\s{2,}/));
     
