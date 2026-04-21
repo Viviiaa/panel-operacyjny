@@ -910,10 +910,13 @@ exportBtn.addEventListener('click', () => {
 });
 
 function generateExcelFile() {
+       if (typeof saveChanges === "function") {
+               saveChanges();
+       }
     const wb = XLSX.utils.book_new();
     
     processedSheets.forEach(s => {
-        const rawText = Array.isArray(s.rows) ? s.rows.join('\n') : (s.text || "");
+       const rawText = Array.isArray(s.rows) ? s.rows.join('\n') : (s.text || "");
         const lines = rawText.split('\n');
         const keywords = ["FAKTURA", "NIP", "SUMA", "RAZEM", "SPRZEDAWCA", "NABYWCA", "NETTO", "BRUTTO"];
 
