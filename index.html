@@ -858,14 +858,14 @@ async function generateExcelFile() {
                     3. Zwróć dane TYLKO w formacie CSV (użyj ; jako separatora). 
                     4. Pierwszy wiersz to nagłówki dopasowane do dokumentu.
                     Nie pisz żadnego wstępu. TEKST: ${currentText.replace(/"/g, "'")}`
-                }]
+                       }]
             })
         });
 
         if (!response.ok) throw new Error("API nie odpowiada: " + response.status);
 
         const data = await response.json();
-        let aiResult = data.choices[0].message.content.trim();
+        const aiText = data.choices[0].message.content.replace(/```csv|```/gi, "").trim();
 
         // Filtr "antysrakowy" - usuwa śmieci od AI
         aiResult = aiResult.replace(/```csv|```|Oto tabela:|Oto dane:/gi, "").trim();
