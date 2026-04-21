@@ -372,9 +372,11 @@ async function getTesseractWorker() {
   await tesseractWorker.loadLanguage('pol');
   await tesseractWorker.initialize('pol');
   
-  await tesseractWorker.setParameters({
-    tessedit_pageseg_mode: '1'
-  });
+ await tesseractWorker.setParameters({
+    tessedit_pageseg_mode: '4',         // TRYB 4: Widzi kolumny i tabele
+    preserve_interword_spaces: '1',     // Zachowuje duże odstępy (klucz do kolumn)
+    tessedit_char_whitelist: '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz .,-/():'
+});
 
   log("Tesseract gotowy.");
   return tesseractWorker;
