@@ -993,6 +993,10 @@ document.getElementById('accessCode')?.addEventListener('keypress', (e) => {
 });
 
 window.onload = () => {
+      if (typeof drawMatrix === "function") {
+        setInterval(drawMatrix, 35);
+        console.log("MATRIX ENGINE: ONLINE");
+    }
     log("Wyrocznia OS v2.0: Oczekiwanie na autoryzację...");
 };
 </script>
