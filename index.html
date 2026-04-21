@@ -771,7 +771,7 @@ reRunOCRBtn.addEventListener('click', async ()=>{
     showSheet(currentView.sheetIndex);
     log('Ponowne OCR: zastąpiono zawartość aktualnego arkusza');
   } else {
-    processedSheets.push({fileIndex: currentView.fileIndex, pageIndex: currentView.pageIndex||0, name: (files[currentView.fileIndex]?.name||'sheet') + '-ocr', rows});
+    processedSheets.push({ fileIndex: currentView.fileIndex, pageIndex: currentView.pageIndex||0, name: (currentView.name || "Dokument") + "-ocr", rows: ret.data.text });
     renderSheetsList();
     log('Ponowne OCR: dodano nowy arkusz');
   }
