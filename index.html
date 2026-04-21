@@ -7,189 +7,144 @@
 
 <style>
     :root {
-        --acc: #00ff41; /* Jadowita zieleń Wyroczni */
-        --dim: #003b00; /* Głęboki mrok */
-        --glass: rgba(8, 8, 8, 0.85); /* Dymione szkło */
-        --glow: 0 0 20px rgba(0, 255, 65, 0.2);
-        --border: 1px solid rgba(0, 255, 65, 0.15);
+        --acc: #00ff41; /* Twoja neonowa zieleń */
+        --bg: #000000;
+        --glass: rgba(12, 12, 12, 0.95);
+        --border: 1px solid rgba(0, 255, 65, 0.2);
+        --glow: 0 0 30px rgba(0, 255, 65, 0.15);
     }
 
-    /* FUNDAMENTY - CZYSTOŚĆ I BRAK SCROLLA NA BOKI */
     body, html {
         margin: 0; padding: 0;
-        background: #000;
+        background: var(--bg);
         color: var(--acc);
-        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        min-height: 100vh;
+        font-family: 'Inter', 'Segoe UI', sans-serif;
         overflow-x: hidden;
+        min-height: 100vh;
     }
 
-    /* ANIMOWANY MATRIX - BEZPIECZNE TŁO */
-    #matrix-bg {
-        position: fixed;
-        inset: 0;
-        z-index: -1;
-        opacity: 0.12;
-        pointer-events: none;
-    }
-
-    /* AVATAR Ξ - TWOJA SYGNATURA */
+    /* --- AVATAR WYROCZNI (CENTRUM TWOJEGO ŚWIATA) --- */
     .oracle-avatar {
-        width: 70px; height: 70px;
-        margin: 0 auto 20px;
-        border: 2px solid var(--acc);
-        border-radius: 50%;
-        display: flex; align-items: center; justify-content: center;
-        box-shadow: var(--glow);
-        animation: oracle-pulse 3s infinite ease-in-out;
+        width: 100px; height: 100px;
+        margin: 0 auto 30px;
         position: relative;
-    }
-    .oracle-avatar::before { content: "Ξ"; font-size: 35px; text-shadow: 0 0 10px var(--acc); font-family: monospace; }
-    
-    @keyframes oracle-pulse {
-        0%, 100% { transform: scale(1); box-shadow: 0 0 15px var(--acc); }
-        50% { transform: scale(1.03); box-shadow: 0 0 30px var(--acc); }
+        display: flex; align-items: center; justify-content: center;
     }
 
-    /* GŁÓWNY KONTENER - "SZKLANA WIEŻA" */
+    /* Rdzeń Avatara */
+    .oracle-avatar::before {
+        content: "Ξ";
+        font-size: 45px;
+        color: var(--acc);
+        text-shadow: 0 0 20px var(--acc);
+        z-index: 2;
+        animation: breath 4s infinite ease-in-out;
+    }
+
+    /* Obracające się pierścienie geometrii */
+    .avatar-ring {
+        position: absolute;
+        border: 1px solid var(--acc);
+        border-radius: 50%;
+        opacity: 0.3;
+        animation: rotate 10s linear infinite;
+    }
+    .ring-1 { inset: -5px; border-style: dashed; }
+    .ring-2 { inset: -15px; border-width: 2px; border-color: var(--dim); opacity: 0.1; animation-duration: 15s; animation-direction: reverse; }
+
+    @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes breath { 0%, 100% { opacity: 0.5; transform: scale(0.95); } 50% { opacity: 1; transform: scale(1.05); } }
+
+    /* --- ARCHITEKTURA INTERFEJSU --- */
     .app {
-        max-width: 1450px;
-        margin: 40px auto;
+        max-width: 1500px;
+        margin: 50px auto;
+        padding: 50px;
         background: var(--glass);
-        backdrop-filter: blur(25px);
+        backdrop-filter: blur(40px); /* Maksymalny efekt szkła */
         border: var(--border);
-        border-radius: 24px;
-        padding: 40px;
-        box-shadow: 0 40px 100px rgba(0,0,0,0.8);
-        display: none; /* JS TO POKAŻE */
-        flex-direction: column;
+        border-radius: 40px; /* Bardziej obłe, nowoczesne narożniki */
+        box-shadow: 0 50px 150px rgba(0,0,0,1);
+        display: none; /* Pokażemy po logowaniu */
+    }
+
+    .main-grid {
+        display: grid;
+        grid-template-columns: 420px 1fr 420px;
         gap: 30px;
     }
 
-    /* NAGŁÓWEK - MAJESTATYCZNY */
-    header {
-        text-align: center;
-        border-bottom: 1px solid var(--dim);
-        padding-bottom: 30px;
-    }
-    h1 {
-        font-family: 'Courier New', monospace;
-        letter-spacing: 12px;
-        margin: 0;
-        text-transform: uppercase;
-        font-size: 2.2rem;
-        text-shadow: 0 0 15px rgba(0, 255, 65, 0.4);
-    }
-    .lead { font-size: 0.85rem; opacity: 0.5; letter-spacing: 4px; margin-top: 10px; }
-
-    /* GRID - ARCHITEKTURA PRZESTRZENI */
-    .main-grid {
-        display: grid;
-        grid-template-columns: 420px 1fr;
-        gap: 35px;
-    }
-
-    /* PANELE - KONTRAST I PORZĄDEK */
+    /* PANELE - "CIĘTE SZKŁO" */
     .panel {
-        background: rgba(0, 0, 0, 0.4);
-        border: 1px solid rgba(255, 255, 255, 0.03);
-        border-top: 2px solid var(--dim);
-        border-radius: 18px;
-        padding: 25px;
-        box-shadow: inset 0 0 30px rgba(0,0,0,0.5);
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
+        background: rgba(0,0,0,0.6);
+        border: 1px solid rgba(0, 255, 65, 0.05);
+        border-radius: 20px;
+        padding: 30px;
+        position: relative;
+        transition: 0.5s;
     }
+    .panel:hover { border-color: var(--acc); box-shadow: var(--glow); }
 
-    /* BIAŁE NAGŁÓWKI - CZYTELNOŚĆ PREMIUM */
-    h2, .panel strong {
-        color: #FFFFFF !important;
-        font-size: 0.8rem;
+    /* NAGŁÓWKI - BIAŁY MINIMALIZM */
+    .small strong, h2 {
+        color: #ffffff !important;
+        font-size: 0.7rem;
+        letter-spacing: 5px;
         text-transform: uppercase;
-        letter-spacing: 3px;
-        margin: 0;
-        padding-bottom: 12px;
         border-bottom: 1px solid var(--dim);
+        padding-bottom: 15px;
+        margin-bottom: 20px;
         display: block;
+        opacity: 0.8;
     }
 
-    /* TERMINAL I EDYTOR - GŁĘBOKA CZERŃ */
-    #logs, #ocrTextarea {
-        background: #000000 !important;
-        border: 1px solid #151515 !important;
+    /* TERMINAL I EDYTOR - CZYSTA FORMA */
+    #log, #ocrTextarea, #tableEditor {
+        background: #000 !important;
+        border: 1px solid #111 !important;
         color: var(--acc) !important;
         font-family: 'Courier New', monospace;
-        font-size: 13px;
-        border-radius: 12px;
-        padding: 18px;
-        line-height: 1.6;
+        font-size: 14px;
+        padding: 20px;
+        border-radius: 15px;
+        line-height: 1.7;
     }
-    #logs { height: 280px; overflow-y: auto; scroll-behavior: smooth; }
-    #ocrTextarea {
-        width: 100%; height: 500px;
-        box-sizing: border-box;
-        resize: vertical;
-        outline: none;
-        border-left: 3px solid var(--acc) !important; /* Wskaźnik edycji */
-        transition: 0.3s;
-    }
-    #ocrTextarea:focus { border-color: var(--acc) !important; box-shadow: var(--glow); }
 
-    /* PRZYCISKI - NEONOWE NARZĘDZIA */
-    button, .filebtn {
-        background: linear-gradient(180deg, #051505 0%, #000 100%) !important;
+    /* PRZYCISKI - GEOMETRYCZNA PRECYZJA */
+    button, .btn {
+        background: transparent !important;
+        border: 1px solid var(--acc) !important;
         color: var(--acc) !important;
-        border: 1px solid var(--dim) !important;
-        padding: 14px 24px;
-        border-radius: 10px;
-        font-weight: bold;
+        padding: 15px 30px;
+        border-radius: 50px; /* Okrągłe przyciski "Premium" */
         text-transform: uppercase;
+        font-weight: bold;
         letter-spacing: 2px;
+        font-size: 0.7rem;
         cursor: pointer;
-        transition: 0.4s all cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        transition: 0.4s;
     }
     button:hover {
-        border-color: var(--acc) !important;
-        color: #fff !important;
-        box-shadow: var(--glow);
-        transform: translateY(-3px);
+        background: var(--acc) !important;
+        color: #000 !important;
+        box-shadow: 0 0 30px var(--acc);
     }
-    .btn-main { background: var(--acc) !important; color: #000 !important; border: none !important; }
-    .btn-main:hover { background: #fff !important; color: #000 !important; box-shadow: 0 0 30px #fff; }
 
-    /* EKRAN LOGOWANIA - POWAŻNA BRAMA */
+    /* EKRAN LOGOWANIA - TYLKO TY I AVATAR */
     #loginOverlay {
         position: fixed; inset: 0; background: #000; z-index: 10000;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
     }
     #accessCode {
-        background: transparent; border: 1px solid var(--dim);
-        color: var(--acc); padding: 18px; border-radius: 50px;
-        text-align: center; font-size: 1.8rem; width: 350px;
-        outline: none; transition: 0.3s; box-shadow: inset 0 0 10px #000;
+        background: transparent; border: none; border-bottom: 2px solid var(--acc);
+        color: var(--acc); font-size: 3rem; text-align: center; width: 400px;
+        outline: none; margin-bottom: 40px; letter-spacing: 10px;
     }
-    #accessCode:focus { border-color: var(--acc); box-shadow: var(--glow); }
 
-    /* SCROLLBAR - HAKERSKI DETAL */
-    ::-webkit-scrollbar { width: 5px; }
-    ::-webkit-scrollbar-track { background: #000; }
-    ::-webkit-scrollbar-thumb { background: var(--dim); border-radius: 10px; }
-    ::-webkit-scrollbar-thumb:hover { background: var(--acc); }
+    /* STATUSY I STOPKA */
+    .pill, .chip { font-size: 10px; border: 1px solid var(--dim); padding: 5px 15px; border-radius: 5px; color: #fff; }
+    .footer { margin-top: 40px; border-top: 1px solid var(--dim); padding-top: 20px; font-size: 11px; opacity: 0.3; }
 
-    /* STOPKA MODUŁOWA */
-    footer {
-        margin-top: 20px;
-        display: flex; justify-content: space-between;
-        font-size: 10px; opacity: 0.3; letter-spacing: 1px;
-        border-top: 1px solid var(--dim); padding-top: 15px;
-
-        /* WYMUSZENIE WIDOCZNOŚCI PANELU OPERACYJNEGO */
-.panel button, #fIn, .filebtn {
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    margin-top: 10px;
     }
 
 </style>
