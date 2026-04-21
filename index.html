@@ -857,7 +857,7 @@ async function generateExcelFile() {
                     2. Wyciągnij najważniejsze parametry dla tego konkretnego typu pisma. 
                     3. Zwróć dane TYLKO w formacie CSV (użyj ; jako separatora). 
                     4. Pierwszy wiersz to nagłówki dopasowane do dokumentu.
-                    Nie pisz żadnego wstępu. TEKST: ${currentText.replace(/"/g, "'")}`
+                    Nie pisz żadnego wstępu. TEKST: ${currentText}`
                        }]
             })
         });
@@ -918,7 +918,7 @@ function forceExport() {
     log("OSTRZEŻENIE: Wymuszono eksport danych mimo anomalii.");
     generateExcelFile();
 }
-
+       
 /* --- SYSTEM DOSTĘPU I INICJALIZACJA --- */
 function checkAccess() {
     const input = document.getElementById('accessCode');
