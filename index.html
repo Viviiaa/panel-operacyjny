@@ -42,10 +42,11 @@
 </style>
 
 <!-- Libraries -->
-<script src="https://jsdelivr.net"></script>
+<script src="https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 <script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+
 
 </head>
 <body>
@@ -166,8 +167,10 @@ function resetUI(){ fileList.innerHTML=''; tableEditor.innerHTML=''; sheetsList.
 async function getTesseractWorker() {
   if (tesseractWorker) return tesseractWorker;
 
-  // W v5 tworzymy workera od razu z językiem i loggerem
-  tesseractWorker = await Tesseract.createWorker(ocrLang || 'pol', 1, {
+  updateStatus("Inicjalizacja Tesseract v4...");
+  
+  // W wersji 4 tworzymy workera tak:
+  tesseractWorker = await Tesseract.createWorker({
     logger: m => {
       if (m.status === 'recognizing text' && m.progress) {
         setProgress(10 + Math.round(m.progress * 70));
@@ -176,11 +179,16 @@ async function getTesseractWorker() {
     }
   });
 
-  // Ustawiamy parametry (PSM 1 - automatyczna detekcja segmentów)
+  // W v4 musimy wywołać te 3 funkcje po kolei:
+  await tesseractWorker.load();
+  await tesseractWorker.loadLanguage('pol');
+  await tesseractWorker.initialize('pol');
+  
   await tesseractWorker.setParameters({
     tessedit_pageseg_mode: '1'
   });
 
+  updateStatus("Tesseract gotowy.");
   return tesseractWorker;
 }
 
