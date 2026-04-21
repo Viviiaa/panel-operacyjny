@@ -180,29 +180,29 @@
 
 <div class="app" role="main">
   <header>
-    <div class="logo">X</div>
+    <div class="logo">[Ω]</div>
     <div>
-      <h1>Konwerter plików → Excel (optymalizowany)</h1>
-      <p class="lead">PDF (renderowanie stron) • obrazy • DOCX — OCR z preprocessingiem, detekcja tabel, pełna edycja przed eksportem</p>
+      <h1>WYROCZNIA // DATA INTELLIGENCE SYSTEM</h1>
+      <p class="lead">AUTONOMICZNA EKSTRAKCJA STRUKTURALNA I WERYFIKACJA LOGIKI</p>
     </div>
   </header>
 
   <div class="controls">
-    <label class="filebtn">Wybierz pliki
+    <label class="filebtn">+ IMPORTUJ DANE SUROWE
       <input id="files" type="file" multiple accept=".pdf,image/*,.png,.jpg,.jpeg,.docx,.doc" />
     </label>
-    <button id="processAll" class="btn">Przetwórz wybrane</button>
-    <div class="pill" id="fileCount">Brak plików</div>
-    <div class="chip" id="langChip">Język OCR: auto</div>
+    <button id="processAll" class="btn">URUCHOM EKSTRAKCJĘ OCR ENGINE</button>
+    <div class="pill" id="fileCount">STATUS: OCZEKIWANIE NA KOLEJKĘ</div>
+    <div class="chip" id="langChip">LINGUISTIC MODULE: MULTI-AUTO</div>
     </div>
 - </div>
 
   <div class="layout">
     <div class="panel" id="leftPanel">
-      <div class="small"><strong>Pliki</strong></div>
+      <div class="small"><strong>ZASOBY WEJŚCIOWE // DATASET</strong></div>
       <div id="fileList" style="margin-top:8px"></div>
       <div style="margin-top:8px;">
-        <div class="small"><strong>Szczegóły przetwarzania</strong></div>
+        <div class="small"><strong>KONSOLA OPERACYJNA // LOGI SYSTEMOWE</strong></div>
         <div id="log" class="log" style="margin-top:8px;max-height:220px;overflow:auto"></div>
       </div>
   
@@ -214,51 +214,51 @@
 
 
     <div class="panel" id="centerPanel">
-      <div class="small"><strong>Podgląd strony / obraz</strong></div>
+      <div class="small"><strong>SKANOWANIE WARSTWOWE // PODGLĄD OBIEKTU</strong></div>
       <div class="canvas-preview" id="canvasArea">
-        <div class="small">Wybierz plik i stronę, aby zobaczyć podgląd</div>
+        <div class="small">OCZEKIWANIE NA WYBÓR OBIEKTU DO WIZUALIZACJI...</div>
       </div>
 
       <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <div class="pill" id="pageInfo">Strona: -</div>
+        <div class="pill" id="pageInfo">SEKCJA: [ID_NULL]</div>
         <button id="prevPage" class="btn">◀</button>
         <button id="nextPage" class="btn">▶</button>
-        <div class="pill" id="ocrStatus">OCR: oczekuje</div>
+        <div class="pill" id="ocrStatus">SILNIK OCR: STANDBY</div>
         <div class="progress" style="flex:1"><i id="progFill"></i></div>
       </div>
 
       <div style="margin-top:12px">
-        <div class="small"><strong>Wykryta tabela — edycja</strong></div>
+        <div class="small"><strong>EDYCJA STRUKTURY DANYCH PRZED EKSPORTEM</strong></div>
         <div class="table-edit" id="tableEditor" style="margin-top:8px;min-height:160px"></div>
       </div>
 
       <div style="margin-top:8px;display:flex;gap:8px">
-        <button id="applyChanges" class="btn">Zatwierdź zmiany</button>
-        <button id="reRunOCR" class="btn">Ponownie OCR z ustawieniami</button>
-        <div class="chip" id="autoFixChip">Auto-fix: włączony</div>
+        <button id="applyChanges" class="btn">ZAPISZ KOREKTĘ (MANUAL OVERRIDE)</button>
+        <button id="reRunOCR" class="btn">RE-SKANOWANIE (PARAMETRY NIESTANDARDOWE)</button>
+        <div class="chip" id="autoFixChip">LOGIC-SHIELD: ACTIVE</div>
       </div>
     </div>
 
     <div class="panel" id="rightPanel">
-      <div class="small"><strong>Eksport</strong></div>
+      <div class="small"><strong>GENEROWANIE RAPORTU FINALNEGO // EXPORT</strong></div>
       <div style="margin-top:8px">
-        <div class="small">Lista arkuszy do eksportu (możesz edytować nazwę arkusza)</div>
+        <div class="small">KOLEJKA STRUKTUR DANYCH (KLASYFIKACJA ARKUSZY)</div>
         <div id="sheetsList" style="margin-top:8px"></div>
       </div>
 
       <div style="margin-top:12px;display:flex;gap:8px;flex-direction:column">
-        <button id="exportXLSX" class="btn">Eksportuj do .xlsx</button>
-        <button id="downloadJSON" class="btn">Pobierz JSON (podgląd)</button>
-        <button id="clearAll" class="btn">Wyczyść wszystko</button>
+        <button id="exportXLSX" class="btn">KOMPILUJ RAPORT ANALITYCZNY (.XLSX)</button>
+        <button id="downloadJSON" class="btn">ZRZUT METADANYCH STRUKTURALNYCH (JSON)</button>
+        <button id="clearAll" class="btn">WYZERUJ BUFOR I ŚRODOWISKO OPERACYJNE</button>
       </div>
 
-      <div style="margin-top:12px" class="small warn">Uwaga: wszystko działa lokalnie w przeglądarce</div>
+      <div style="margin-top:12px" class="small warn">SECURITY PROTOCOL: PRZETWARZANIE END-TO-END (LOCAL STORAGE ONLY)</div>
     </div>
   </div>
 
   <div class="footer">
-    <div class="small">Data: April 21, 2026</div>
-    <div class="small">Optymalizacje: pdf.js rendering, preprocessing obrazu, heurystyczna detekcja linii tabeli, edytor</div>
+    <div class="small">TIMESTAMP: [2026-04-21] // SYSTEM_LIVE</div>
+    <div class="small">CORE MODULES: pdf.js_v2 // image_preprocessing // heuristic_table_mapping // manual_override_editor</div>
   </div>
 </div>
 
@@ -572,11 +572,11 @@ async function runOCROnCurrentCanvas(opts={binarize:true,scale:1.6}){
   const preDataURL = preprocessImageData(currentView.imageData, {scale: opts.scale, binarize: opts.binarize, contrast: 1.3});
   setProgress(5);
   setOcrStatus('rozpoznawanie');
-  const ret = await worker.recognize(preDataURL);
+  const res = await worker.recognize(preDataURL);
   document.getElementById('ocrTextarea').value = ret.data.text; 
   processedSheets.push({ name: file.name, rows: ret.data.text });
   setProgress(90);
-  const text = ret.data.text || '';
+  const text = res.data.text || '';
   setOcrStatus('gotowe');
   log('OCR zakończone — długość tekstu: ' + text.length);
   // convert text to table heuristically: split lines, then split columns by multiple spaces or tab, or by detected vertical lines
