@@ -7,94 +7,117 @@
 
 <style>
     :root {
-        --bg-color: #050505;
-        --accent-color: #00ff41; /* Klasyczna zieleń Matrixa */
-        --text-color: #00ff41;
-        --border-color: #003b00;
-        --card-bg: #0a0a0a;
-        --btn-hover: #008f11;
+        --bg-color: #020202;
+        --accent-color: #00ff41;
+        --dim-green: #003b00;
+        --border-glow: rgba(0, 255, 65, 0.2);
     }
 
     body {
         background-color: var(--bg-color);
-        color: var(--text-color);
-        font-family: 'Courier New', Courier, monospace; /* Czcionka terminalowa */
+        color: var(--accent-color);
+        font-family: 'Courier New', Courier, monospace;
         margin: 0;
-        padding: 20px;
+        padding: 15px;
+        line-height: 1.4;
     }
 
-    h1, h2, h3 {
-        color: var(--accent-color);
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        border-bottom: 1px solid var(--accent-color);
-        padding-bottom: 5px;
-    }
-
+    /* GŁÓWNY KONTENER - przywracamy strukturę */
     .app {
-        border: 1px solid var(--accent-color);
-        padding: 20px;
-        box-shadow: 0 0 15px rgba(0, 255, 65, 0.1);
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr; /* Trzy kolumny jak w oryginale */
+        gap: 20px;
+        max-width: 1600px;
+        margin: 0 auto;
     }
 
-    /* Przyciski w stylu terminala */
-    button, .filebtn {
-        background: transparent;
+    header {
+        grid-column: 1 / -1;
+        border-bottom: 2px solid var(--accent-color);
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        text-shadow: 0 0 5px var(--accent-color);
+    }
+
+    /* SEKCJE JAKO OSOBNE BLOKI */
+    .controls, .preview-container, .export-section, .logs-container {
+        border: 1px solid var(--dim-green);
+        background: #080808;
+        padding: 15px;
+        box-shadow: inset 0 0 10px #000, 0 0 5px var(--border-glow);
+        position: relative;
+    }
+
+    /* TYTUŁY SEKCJI */
+    h2, h3 {
+        font-size: 14px;
+        margin-top: 0;
+        background: var(--dim-green);
         color: var(--accent-color);
-        border: 1px solid var(--accent-color);
-        padding: 10px 20px;
+        padding: 3px 10px;
+        display: inline-block;
         text-transform: uppercase;
-        cursor: pointer;
-        font-family: inherit;
-        transition: all 0.3s;
     }
 
-    button:hover, .filebtn:hover {
-        background: var(--accent-color);
-        color: #000;
-        box-shadow: 0 0 10px var(--accent-color);
-    }
-
-    /* Karty i sekcje */
-    .file-item, .export-item, .preview-container {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        margin-bottom: 10px;
-        padding: 10px;
-    }
-
-    /* Logi i tekst OCR */
-    #logs, #ocrTextarea {
-        background: #000 !important;
-        color: var(--accent-color) !important;
-        border: 1px solid var(--accent-color) !important;
-        font-family: 'Courier New', monospace;
-    }
-
-    /* Pasek postępu */
-    .progress-bar {
-        background-color: var(--border-color);
-        border: 1px solid var(--accent-color);
-    }
-
-    .progress-fill {
-        background-color: var(--accent-color);
-    }
-
-    /* Inputy */
-    input, textarea {
+    /* PRZYCISKI - bardziej funkcyjne */
+    button, .filebtn {
         background: #000;
         color: var(--accent-color);
-        border: 1px solid var(--border-color);
+        border: 1px solid var(--accent-color);
+        padding: 8px 15px;
+        cursor: pointer;
+        font-weight: bold;
+        text-transform: uppercase;
+        width: 100%;
+        margin-bottom: 5px;
     }
 
-    ::-webkit-scrollbar {
-        width: 5px;
-    }
-    ::-webkit-scrollbar-thumb {
+    button:hover {
         background: var(--accent-color);
+        color: #000;
+        box-shadow: 0 0 15px var(--accent-color);
     }
+
+    /* OBSZARY TEKSTOWE I LOGI */
+    #logs, textarea {
+        background: #000 !important;
+        color: #00ff41 !important;
+        border: 1px solid var(--dim-green) !important;
+        width: 100%;
+        height: 150px;
+        font-size: 12px;
+        overflow-y: auto;
+    }
+
+    /* PODGLĄD OBRAZU - żeby nie latał luźno */
+    #canvasContainer {
+        border: 1px solid var(--accent-color);
+        background: #111;
+        display: flex;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    canvas {
+        max-width: 100%;uu
+        filter: brightness(0.8) contrast(1.2) sepia(100%) hue-rotate(70deg); /* Zielonkawy filtr na obraz */
+    }
+
+    /* LISTA PLIKÓW */
+    .file-item {
+        border-left: 3px solid var(--accent-color);
+        background: #0f0f0f;
+        margin: 5px 0;
+        padding: 5px 10px;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .progress-bar { height: 10px; background: #001a00; border: 1px solid var(--accent-color); margin: 10px 0; }
+    .progress-fill { background: var(--accent-color); height: 100%; box-shadow: 0 0 10px var(--accent-color); }
+
 </style>
+
 
 
 <!-- Libraries -->
@@ -691,51 +714,79 @@ reRunOCRBtn.addEventListener('click', async ()=>{
   }
 });
 
-/* Export to XLSX */
+/* EKSPORT DO XLSX - WERSJA PREMIUM WYROCZNIA */
 exportBtn.addEventListener('click', () => {
-  if (!processedSheets.length) { log('Brak arkuszy do eksportu'); return; }
+  if (!processedSheets.length) { 
+    log('Brak danych do eksportu. Przetwórz pliki najpierw.'); 
+    return; 
+  }
+  
   const wb = XLSX.utils.book_new();
 
   processedSheets.forEach(s => {
-    // 1. CZYSZCZENIE I LOGIKA UKŁADU: Dzielimy na wiersze i kolumny
-    const formattedRows = s.rows
-      .map(row => {
-        let textLine = "";
-        if (typeof row === 'string') textLine = row;
-        else if (Array.isArray(row) && row.length === 1) textLine = String(row[0]);
-        else return row;
+    // 1. PRZYGOTOWANIE DANYCH: Łączymy wyniki OCR i tniemy na linie
+    const rawText = s.rows.map(r => Array.isArray(r) ? r.join(' ') : r).join('\n');
+    const lines = rawText.split('\n');
 
-        // Dzielimy tam, gdzie są min. 2 spacje (pionowe rubryki)
-        return textLine.trim().split(/\s{2,}/);
+    // Słowa klucze, które system ma automatycznie pogrubić w arkuszu
+    const keywords = ["FAKTURA", "NIP", "SUMA", "RAZEM", "SPRZEDAWCA", "NABYWCA", "DATA", "NETTO", "BRUTTO", "DO ZAPŁATY"];
+
+    // 2. LOGIKA BUDOWANIA WIERSZY I STYLIZACJI
+    const formattedRows = lines
+      .map(line => {
+        const trimmedLine = line.trim();
+        if (!trimmedLine) return null; // Ignorujemy całkowicie puste linie
+
+        // Dzielimy na kolumny tam, gdzie są min. 2 spacje
+        const cells = trimmedLine.split(/\s{2,}/);
+        const isImportant = keywords.some(k => trimmedLine.toUpperCase().includes(k));
+
+        // Tworzymy obiekty Excela z inteligentną stylizacją
+        return cells.map(cell => ({
+          v: cell, // wartość komórki
+          t: 's',  // typ: tekst
+          s: {
+            font: { 
+              bold: isImportant, 
+              name: "Courier New", 
+              size: 11,
+              color: { rgb: isImportant ? "000000" : "333333" }
+            },
+            fill: isImportant ? { fgColor: { rgb: "EFEFEF" } } : null // Lekkie tło dla ważnych wierszy
+          }
+        }));
       })
-      // 2. USUWACZ PUSTYCH LINII: Pozbywamy się zbędnego syfu
-      .filter(row => row.length > 0 && row !== "");
+      .filter(row => row !== null && row.length > 0);
 
-    // 3. Tworzymy arkusz
+    // 3. TWORZENIE ARKUSZA
     const ws = XLSX.utils.aoa_to_sheet(formattedRows);
 
-    // 4. UPIĘKSZACZ: Automatyczne szerokości kolumn (soczysty wygląd)
+    // 4. UPIĘKSZACZ: Automatyczne dopasowanie szerokości kolumn (wch)
     if (formattedRows.length > 0) {
       const colWidths = formattedRows[0].map((_, i) => {
-        return {
-          wch: Math.max(...formattedRows.map(row => row[i] ? row[i].toString().length : 10)) + 5
-        };
+        const maxLength = Math.max(...formattedRows.map(row => 
+          row[i] ? row[i].v.toString().length : 10
+        ));
+        return { wch: maxLength + 5 }; // Dodajemy margines 5 jednostek
       });
       ws['!cols'] = colWidths;
     }
     
-    // 5. Czyszczenie nazwy arkuszau
+    // 5. BEZPIECZNA NAZWA ARKUSZA
     let sheetName = s.name.replace(/[\[\]\*\?\/\\:]/g, '').slice(0, 31) || 'Sheet';
     let base = sheetName, i = 1;
-    while (wb.SheetNames.includes(sheetName)) sheetName = base.slice(0, 28) + '_' + (i++);
+    while (wb.SheetNames.includes(sheetName)) {
+      sheetName = base.slice(0, 28) + '_' + (i++);
+    }
     
     XLSX.utils.book_append_sheet(wb, ws, sheetName);
   });
 
-  // 6. Generowanie pliku
-  XLSX.writeFile(wb, 'wyrocznia_export.xlsx');
-  log('Eksport do .xlsx gotowy: dane poukładane pionowo i wyczyszczone.');
+  // 6. GENEROWANIE PLIKU I FINALNY LOG
+  XLSX.writeFile(wb, 'Wyrocznia_Raport_Premium.xlsx');
+  log('System Operacyjny: Eksport do .xlsx zakończony sukcesem (Style: Aktywne).');
 });
+
 
 
 
