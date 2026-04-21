@@ -565,7 +565,7 @@ function normalizeRows(rows){
 
 /* OCR flow for current canvas */
 async function runOCROnCurrentCanvas(opts={binarize:true,scale:1.6}){
-  if(!currentView.canvas || !currentView.imageData) { setOcrStatus('brak obrazu'); return null; }u
+  if(!currentView.canvas || !currentView.imageData) { setOcrStatus('brak obrazu'); return null; }
   setOcrStatus('inicjalizacja');
   const worker = await getTesseractWorker();
   setOcrStatus('preprocessing');
