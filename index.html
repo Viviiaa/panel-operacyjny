@@ -1,0 +1,430 @@
+<html>
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <title>OCR -> Excel (zoptymalizowane, client-side)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body{font-family:system-ui,Segoe UI,Roboto,Arial;margin:18px}
+    .drop{border:2px dashed #888;padding:22px;text-align:center;border-radius:8px}
+    .files{margin-top:12px}
+    button{margin-top:12px;padding:8px 12px}
+    .log{white-space:pre-wrap;background:#f7f7f7;padding:10px;border-radius:6px;margin-top:12px;max-height:220px;overflow:auto}
+    .progress{height:14px;background:#eee;border-radius:8px;overflow:hidden;margin-top:8px}
+    .progress > i{display:block;height:100%;background:linear-gradient(90deg,#4caf50,#8bc34a);width:0%}
+  </style>
+</head>
+<body>
+  <h3>OCR do Excel — zoptymalizowane (client-side)</h3>
+
+  <div class="drop" id="drop">Upuść plik PDF/PNG/JPG tutaj lub kliknij, aby wybrać
+    <input id="fileInput" type="file" accept=".pdf,image/*" style="display:none" multiple>
+  </div>
+
+  <div class="files" id="files"></div>
+  <div style="margin-top:8px">
+    <button id="startBtn">Przetwórz i pobierz</button>
+    <button id="cancelBtn" disabled>Przerwij</button>
+  </div>
+
+  <div class="progress" id="progress"><i></i></div>
+  <div class="log" id="log"></div>
+
+<script>
+/*
+  Zasady optymalizacji zastosowane w tym pliku:
+  - lazy-load bibliotek (Tesseract.js, pdf.js, OpenCV.js, SheetJS) tylko przy starcie
+  - worker OCR + worker OpenCV (jeśli OffscreenCanvas dostępny)
+  - adaptive scaling: obrazy skalowane do optymalnej rozdzielczości (ok. 300 DPI)
+  - batch processing: przetwarzanie stron/obrazów partiami
+  - możliwość anulowania
+  - minimalne użycie pamięci: zwalnianie canvasów i obiektów po użyciu
+*/
+
+const drop = document.getElementById('drop');
+const fileInput = document.getElementById('fileInput');
+const filesDiv = document.getElementById('files');
+const startBtn = document.getElementById('startBtn');
+const cancelBtn = document.getElementById('cancelBtn');
+const logEl = document.getElementById('log');
+const progressBar = document.querySelector('#progress > i');
+
+let files = [];
+let abortFlag = false;
+let libs = {}; // will hold loaded libs
+
+function log(...args){ logEl.textContent += args.join(' ') + '\\n'; logEl.scrollTop = logEl.scrollHeight; }
+function setProgress(p){ progressBar.style.width = Math.max(0, Math.min(100, Math.round(p*100))) + '%'; }
+
+drop.addEventListener('click', ()=>fileInput.click());
+fileInput.addEventListener('change', e => addFiles(e.target.files));
+drop.addEventListener('dragover', e => { e.preventDefault(); drop.style.borderColor='#444'; });
+drop.addEventListener('dragleave', e => { e.preventDefault(); drop.style.borderColor='#888'; });
+drop.addEventListener('drop', e => { e.preventDefault(); drop.style.borderColor='#888'; addFiles(e.dataTransfer.files); });
+
+function addFiles(list){
+  for(const f of list){
+    files.push(f);
+    const el = document.createElement('div');
+    el.textContent = f.name + ' (' + Math.round(f.size/1024) + ' KB)';
+    filesDiv.appendChild(el);
+  }
+  log('Dodano', list.length, 'plik(ów).');
+}
+
+// --- lazy load helper
+async function loadScriptOnce(url, globalName){
+  if(libs[url]) return libs[url];
+  log('Ładowanie', url);
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = url;
+    s.onload = () => { libs[url] = window[globalName] || true; resolve(libs[url]); };
+    s.onerror = (e) => reject(e);
+    document.head.appendChild(s);
+  });
+}
+
+// --- feature detection
+const supportsOffscreen = typeof OffscreenCanvas !== 'undefined';
+const supportsWorkers = typeof Worker !== 'undefined';
+
+// --- worker code strings (minimal) ------------------------------------------------
+// OCR worker will be created from blob; it lazy-loads tesseract core via CDN path passed in init
+const ocrWorkerCode = `
+self.onmessage = async (ev) => {
+  const {cmd, payload} = ev.data;
+  if(cmd === 'init'){
+    importScripts(payload.tesseractUrl);
+    // create worker inside worker (tesseract provides createWorker)
+    self.worker = await Tesseract.createWorker({logger: m => self.postMessage({type:'log', data:m})});
+    await self.worker.load();
+    await self.worker.loadLanguage(payload.lang || 'eng');
+    await self.worker.initialize(payload.lang || 'eng');
+    self.postMessage({type:'ready'});
+  } else if(cmd === 'recognize'){
+    try{
+      const {imageData, id} = payload;
+      // recognize accepts ImageData or dataURL
+      const res = await self.worker.recognize(imageData);
+      self.postMessage({type:'result', id, data: res.data});
+    }catch(e){
+      self.postMessage({type:'error', id, error: e.toString()});
+    }
+  } else if(cmd === 'terminate'){
+    if(self.worker) await self.worker.terminate();
+    self.postMessage({type:'terminated'});
+    self.close();
+  }
+};
+`;
+
+// OpenCV worker: receives ImageData, runs deskew + adaptive threshold + optional table line detection, returns processed ImageData
+const cvWorkerCode = `
+self.onmessage = async (ev) => {
+  const {cmd, payload} = ev.data;
+  if(cmd === 'init'){
+    importScripts(payload.opencvUrl);
+    // wait until cv is ready
+    const waitFor = () => new Promise(r => {
+      const check = () => { if(self.cv && self.cv.Mat) r(); else setTimeout(check, 50); };
+      check();
+    });
+    await waitFor();
+    self.postMessage({type:'ready'});
+  } else if(cmd === 'process'){
+    try{
+      const {imageData, id, options} = payload;
+      const cv = self.cv;
+      // create mat from ImageData
+      const src = cv.matFromImageData(imageData);
+      let gray = new cv.Mat();
+      cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY, 0);
+      // resize to target width if needed
+      const maxDim = options.maxDim || 2000;
+      if(Math.max(gray.cols, gray.rows) > maxDim){
+        const scale = maxDim / Math.max(gray.cols, gray.rows);
+        const dsize = new cv.Size(Math.round(gray.cols*scale), Math.round(gray.rows*scale));
+        let tmp = new cv.Mat();
+        cv.resize(gray, tmp, dsize, 0, 0, cv.INTER_AREA);
+        gray.delete(); gray = tmp;
+      }
+      // denoise
+      cv.fastNlMeansDenoising(gray, gray, 10, 7, 21);
+      // deskew: compute angle via moments on edges
+      let edges = new cv.Mat();
+      cv.Canny(gray, edges, 50, 150);
+      let lines = new cv.Mat();
+      cv.HoughLinesP(edges, lines, 1, Math.PI/180, 100, Math.round(gray.cols/4), 20);
+      let angle = 0;
+      if(lines.rows > 0){
+        let sum=0, cnt=0;
+        for(let i=0;i<lines.rows;i++){
+          const x1 = lines.data32S[i*4], y1 = lines.data32S[i*4+1];
+          const x2 = lines.data32S[i*4+2], y2 = lines.data32S[i*4+3];
+          const a = Math.atan2(y2-y1, x2-x1) * 180/Math.PI;
+          if(Math.abs(a) < 45){ sum += a; cnt++; }
+        }
+        if(cnt>0) angle = sum/cnt;
+      }
+      if(Math.abs(angle) > 0.1){
+        const center = new cv.Point(gray.cols/2, gray.rows/2);
+        const M = cv.getRotationMatrix2D(center, angle, 1);
+        let rotated = new cv.Mat();
+        cv.warpAffine(gray, rotated, M, new cv.Size(gray.cols, gray.rows), cv.INTER_LINEAR, cv.BORDER_CONSTANT, new cv.Scalar(255,255,255,255));
+        gray.delete(); gray = rotated;
+      }
+      // adaptive threshold
+      let dst = new cv.Mat();
+      cv.adaptiveThreshold(gray, dst, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 31, 10);
+      // optional: detect table lines and return mask (not implemented fully here to keep worker small)
+      const out = new ImageData(new Uint8ClampedArray(dst.data), dst.cols, dst.rows);
+      src.delete(); gray.delete(); edges.delete(); lines.delete(); dst.delete();
+      self.postMessage({type:'processed', id, imageData: out}, [out.data.buffer]);
+    }catch(e){
+      self.postMessage({type:'error', error: e.toString()});
+    }
+  }
+};
+`;
+
+// create worker from code string
+function createWorkerFromCode(code){
+  const blob = new Blob([code], {type:'application/javascript'});
+  const url = URL.createObjectURL(blob);
+  const w = new Worker(url);
+  return w;
+}
+
+// --- helper: convert canvas to ImageData (with OffscreenCanvas fallback)
+function canvasToImageData(canvas){
+  if(canvas.transferControlToOffscreen){
+    // OffscreenCanvas path: draw already on canvas; get ImageData
+    const ctx = canvas.getContext('2d');
+    return ctx.getImageData(0,0,canvas.width, canvas.height);
+  } else {
+    const ctx = canvas.getContext('2d');
+    return ctx.getImageData(0,0,canvas.width, canvas.height);
+  }
+}
+
+// --- adaptive scaling: target DPI ~300 for OCR quality, but limit max pixels
+function drawImageToCanvas(imgBitmap, maxDim=2000){
+  const scale = Math.min(1, maxDim / Math.max(imgBitmap.width, imgBitmap.height));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(imgBitmap.width * scale);
+  canvas.height = Math.round(imgBitmap.height * scale);
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(imgBitmap, 0, 0, canvas.width, canvas.height);
+  return canvas;
+}
+
+// --- main processing flow
+startBtn.addEventListener('click', async () => {
+  if(files.length === 0){ log('Brak plików.'); return; }
+  startBtn.disabled = true; cancelBtn.disabled = false; abortFlag = false;
+  setProgress(0); log('Start przetwarzania. Ładowanie bibliotek...');
+  try{
+    // lazy load minimal libs
+    await loadScriptOnce('https://cdn.jsdelivr.net/npm/pdfjs-dist@2.16.105/build/pdf.min.js', 'pdfjsLib');
+    await loadScriptOnce('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js', 'XLSX');
+    // tesseract and opencv loaded inside workers to avoid blocking main thread
+    // create workers
+    const ocrWorker = createWorkerFromCode(ocrWorkerCode);
+    const cvWorker = createWorkerFromCode(cvWorkerCode);
+    let ocrReady=false, cvReady=false;
+    const tesseractUrl = 'https://cdn.jsdelivr.net/npm/tesseract.js@4.1.1/dist/tesseract.min.js';
+    const opencvUrl = 'https://docs.opencv.org/4.x/opencv.js'; // CDN for OpenCV.js
+    // init workers
+    const ocrInit = new Promise((res, rej) => {
+      ocrWorker.onmessage = (e) => {
+        const m = e.data;
+        if(m.type === 'ready'){ ocrReady=true; res(); }
+        else if(m.type === 'log') log('OCR worker:', JSON.stringify(m.data).slice(0,200));
+        else if(m.type === 'error') log('OCR worker error:', m.error);
+      };
+      ocrWorker.postMessage({cmd:'init', payload:{tesseractUrl, lang:'pol+eng'}});
+    });
+    const cvInit = new Promise((res, rej) => {
+      cvWorker.onmessage = (e) => {
+        const m = e.data;
+        if(m.type === 'ready'){ cvReady=true; res(); }
+        else if(m.type === 'error') log('CV worker error:', m.error);
+      };
+      cvWorker.postMessage({cmd:'init', payload:{opencvUrl}});
+    });
+    await Promise.all([ocrInit, cvInit]);
+    log('Workers gotowi.');
+
+    // process files in batches to limit memory
+    const resultsBySheet = {};
+    let totalItems = files.length;
+    let processedItems = 0;
+
+    for(const f of files){
+      if(abortFlag) break;
+      log('Przetwarzanie pliku:', f.name);
+      if(f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf')){
+        const arrayBuffer = await f.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
+        const numPages = pdf.numPages;
+        for(let p=1; p<=numPages; p++){
+          if(abortFlag) break;
+          log('Render strony', p, '/', numPages);
+          const page = await pdf.getPage(p);
+          const viewport = page.getViewport({scale: 2.0});
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.round(viewport.width);
+          canvas.height = Math.round(viewport.height);
+          const ctx = canvas.getContext('2d');
+          await page.render({canvasContext: ctx, viewport}).promise;
+          // adaptive scaling to limit size
+          const imgBitmap = await createImageBitmap(canvas);
+          const drawCanvas = drawImageToCanvas(imgBitmap, 2000);
+          // send to cv worker for preprocessing
+          const imageData = canvasToImageData(drawCanvas);
+          const cvProcess = new Promise((res, rej) => {
+            cvWorker.onmessage = (ev) => {
+              const m = ev.data;
+              if(m.type === 'processed' && m.id === undefined){ // single-threaded usage
+                res(m.imageData);
+              } else if(m.type === 'error'){ rej(m.error); }
+            };
+            // transfer imageData buffer for speed
+            try{
+              cvWorker.postMessage({cmd:'process', payload:{imageData, id:undefined, options:{maxDim:2000}}}, [imageData.data.buffer]);
+            }catch(e){
+              // fallback without transfer
+              cvWorker.postMessage({cmd:'process', payload:{imageData, id:undefined, options:{maxDim:2000}}});
+            }
+          });
+          const processedImageData = await cvProcess;
+          // OCR: send processed ImageData to OCR worker
+          const ocrRes = new Promise((res, rej) => {
+            ocrWorker.onmessage = (ev) => {
+              const m = ev.data;
+              if(m.type === 'result' && m.id === undefined){ res(m.data); }
+              else if(m.type === 'error'){ rej(m.error); }
+              else if(m.type === 'log'){ /* ignore or show */ }
+            };
+            try{
+              ocrWorker.postMessage({cmd:'recognize', payload:{imageData: processedImageData, id: undefined}});
+            }catch(e){
+              ocrWorker.postMessage({cmd:'recognize', payload:{imageData: processedImageData, id: undefined}});
+            }
+          });
+          const ocrData = await ocrRes;
+          // group words into rows (simple heuristic)
+          const words = (ocrData.words || []).map(w => ({
+            text: w.text || '',
+            x: w.bbox.x0, y: w.bbox.y0, w: w.bbox.x1 - w.bbox.x0
+          })).filter(w=>w.text && w.text.trim().length>0);
+          const rows = groupWordsToRows(words, Math.max(8, drawCanvas.height/200));
+          const table = rowsToTable(rows);
+          resultsBySheet[f.name + '_p' + p] = table;
+          processedItems++;
+          setProgress(processedItems / totalItems);
+          // free memory
+          imgBitmap.close();
+        }
+      } else {
+        // image file
+        const imgBitmap = await createImageBitmap(f);
+        const drawCanvas = drawImageToCanvas(imgBitmap, 2000);
+        const imageData = canvasToImageData(drawCanvas);
+        // cv preprocess
+        const processedImageData = await new Promise((res, rej) => {
+          cvWorker.onmessage = (ev) => {
+            const m = ev.data;
+            if(m.type === 'processed') res(m.imageData);
+            else if(m.type === 'error') rej(m.error);
+          };
+          try{
+            cvWorker.postMessage({cmd:'process', payload:{imageData, id: undefined, options:{maxDim:2000}}}, [imageData.data.buffer]);
+          }catch(e){
+            cvWorker.postMessage({cmd:'process', payload:{imageData, id: undefined, options:{maxDim:2000}}});
+          }
+        });
+        // OCR
+        const ocrData = await new Promise((res, rej) => {
+          ocrWorker.onmessage = (ev) => {
+            const m = ev.data;
+            if(m.type === 'result') res(m.data);
+            else if(m.type === 'error') rej(m.error);
+          };
+          ocrWorker.postMessage({cmd:'recognize', payload:{imageData: processedImageData, id: undefined}});
+        });
+        const words = (ocrData.words || []).map(w => ({
+          text: w.text || '',
+          x: w.bbox.x0, y: w.bbox.y0, w: w.bbox.x1 - w.bbox.x0
+        })).filter(w=>w.text && w.text.trim().length>0);
+        const rows = groupWordsToRows(words, Math.max(8, drawCanvas.height/200));
+        const table = rowsToTable(rows);
+        resultsBySheet[f.name] = table;
+        processedItems++;
+        setProgress(processedItems / totalItems);
+        imgBitmap.close();
+      }
+    } // end for files
+
+    // terminate workers
+    ocrWorker.postMessage({cmd:'terminate'});
+    cvWorker.postMessage({cmd:'terminate'});
+
+    if(abortFlag){
+      log('Przetwarzanie przerwane przez użytkownika.');
+      startBtn.disabled = false; cancelBtn.disabled = true; setProgress(0);
+      return;
+    }
+
+    log('Tworzenie pliku wynikowego (lokalne pobranie)...');
+    // build workbook using SheetJS (already loaded)
+    const wb = XLSX.utils.book_new();
+    for(const [name, table] of Object.entries(resultsBySheet)){
+      const maxCols = table.reduce((m,r)=>Math.max(m, r.length), 0);
+      const norm = table.map(r => { const nr = r.slice(); while(nr.length < maxCols) nr.push(''); return nr; });
+      const ws = XLSX.utils.aoa_to_sheet(norm);
+      XLSX.utils.book_append_sheet(wb, ws, name.substring(0,31));
+    }
+    const wbout = XLSX.write(wb, {bookType:'xlsx', type:'array'});
+    const blob = new Blob([wbout], {type:'application/octet-stream'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'ocr_output.xlsx';
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    log('Gotowe. Plik pobrany.');
+  }catch(e){
+    log('Błąd:', e);
+  } finally {
+    startBtn.disabled = false; cancelBtn.disabled = true; setProgress(1);
+  }
+});
+
+// cancel
+cancelBtn.addEventListener('click', () => { abortFlag = true; cancelBtn.disabled = true; log('Anulowanie...'); });
+
+// --- small helpers for grouping words into rows and converting to table
+function groupWordsToRows(words, yTol=10){
+  words.sort((a,b)=>a.y - b.y || a.x - b.x);
+  const rows = [];
+  for(const w of words){
+    let placed=false;
+    for(const r of rows){
+      if(Math.abs(w.y - r.avgY) <= yTol){
+        r.items.push(w);
+        r.avgY = (r.avgY*(r.items.length-1) + w.y)/r.items.length;
+        placed=true; break;
+      }
+    }
+    if(!placed) rows.push({avgY: w.y, items:[w]});
+  }
+  return rows.map(r => r.items.sort((a,b)=>a.x - b.x));
+}
+function rowsToTable(rows){
+  return rows.map(r => r.map(c => (c.text||'').replace(/\\s+/g,' ').trim()));
+}
+</script>
+</body>
+</html>
