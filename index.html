@@ -6,11 +6,12 @@
 <title>Konwerter → Excel (dark) — zoptymalizowany</title>
 
 <style>
-      :root {
+       :root {
         --neon: #00ff41;
         --white: #ffffff;
         --glass: rgba(10, 10, 10, 0.95);
         --dim: rgba(0, 255, 65, 0.15);
+        --glow: 0 0 20px rgba(0, 255, 65, 0.4);
     }
 
     body, html {
@@ -22,7 +23,7 @@
         overflow-x: hidden;
     }
 
-    /* --- TWÓJ IDEALNY EKRAN LOGOWANIA (LINIE 32-71 ZE SCREENA) --- */
+    /* --- EKRAN LOGOWANIA (ZACHOWANY) --- */
     #loginOverlay {
         position: fixed; inset: 0; background: #000; z-index: 10000;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -62,7 +63,7 @@
         position: relative; z-index: 10001;
     }
 
-    /* --- INTERFEJS SYSTEMOWY (LUKSUSOWA KONTYNUACJA) --- */
+    /* --- INTERFEJS SYSTEMOWY --- */
     .app {
         max-width: 1750px;
         margin: 40px auto;
@@ -72,10 +73,23 @@
         border-radius: 35px;
         padding: 40px;
         box-shadow: 0 50px 150px #000;
-        /* display: none; - kontrolowane przez Twój JS */
+        position: relative;
+        overflow: hidden;
     }
 
-    /* TWOJA STRUKTURA PANELOWA (SZKŁO I KONTRAST) */
+    /* BAJER 1: LATAJĄCY NEON (SKANER) NA GÓRZE APKI */
+    .app::before {
+        content: "";
+        position: absolute;
+        top: 0; left: -100%;
+        width: 100%; height: 2px;
+        background: linear-gradient(90deg, transparent, var(--neon), transparent);
+        animation: scan-line 4s linear infinite;
+        z-index: 10;
+    }
+    @keyframes scan-line { 0% { left: -100%; } 100% { left: 100%; } }
+
+    /* PANELE - SZKŁO I KONTRAST */
     .panel, #leftPanel, #centerPanel, #rightPanel, .section-card, .layout > div {
         background: rgba(0, 0, 0, 0.7) !important;
         border: 1px solid var(--dim) !important;
@@ -83,9 +97,23 @@
         padding: 25px !important;
         margin-bottom: 20px;
         box-shadow: inset 0 0 30px #000;
+        position: relative;
+        overflow: hidden;
     }
 
-    /* BIAŁE NAGŁÓWKI - TWOJA CZYTELNOŚĆ PREMIUM */
+    /* BAJER 2: SUBTELNY SYMBOL Ξ W TLE KAŻDEGO PANELU */
+    .panel::after, #leftPanel::after, #centerPanel::after, #rightPanel::after {
+        content: "Ξ";
+        position: absolute;
+        bottom: -20px; right: -10px;
+        font-size: 80px;
+        color: var(--neon);
+        opacity: 0.03;
+        pointer-events: none;
+        font-family: serif;
+    }
+
+    /* BIAŁE NAGŁÓWKI */
     strong, h2, .small strong, .panel-title {
         color: #ffffff !important;
         text-transform: uppercase !important;
@@ -95,9 +123,10 @@
         padding-left: 15px;
         margin-bottom: 20px;
         display: block;
+        text-shadow: var(--glow);
     }
 
-    /* PRZYCISKI - NEONOWE NARZĘDZIA (W TYM IMPORT) */
+    /* PRZYCISKI - NEONOWE NARZĘDZIA */
     button, .btn, .filebtn, .controls label {
         background: transparent !important;
         border: 1px solid var(--neon) !important;
@@ -108,15 +137,29 @@
         text-transform: uppercase;
         font-size: 0.7rem;
         cursor: pointer;
-        transition: 0.3s;
+        transition: 0.3s all cubic-bezier(0.175, 0.885, 0.32, 1.275);
         display: inline-block !important;
         text-decoration: none;
+        position: relative;
+        overflow: hidden;
     }
 
+    /* BAJER 3: LATAJĄCY BŁYSK NA PRZYCISKACH PRZY NAJECHANIU */
     button:hover, .filebtn:hover {
         background: var(--neon) !important;
         color: #000 !important;
         box-shadow: 0 0 30px var(--neon);
+        transform: translateY(-3px);
+    }
+
+    /* BAJER 4: PULSUJĄCY NEON DLA PRZYCISKU EKSPORTU (Pancerny Akcent) */
+    button[onclick*="generateExcel"], .btn-main {
+        animation: pulse-border 2s infinite;
+    }
+    @keyframes pulse-border {
+        0% { box-shadow: 0 0 0 0 rgba(0, 255, 65, 0.4); }
+        70% { box-shadow: 0 0 0 15px rgba(0, 255, 65, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(0, 255, 65, 0); }
     }
 
     /* EDYTOR I LOGI */
@@ -129,9 +172,15 @@
         border-radius: 15px;
         width: 100%;
         box-sizing: border-box;
+        transition: 0.3s;
     }
     
-    #ocrTextarea { border-left: 3px solid var(--neon) !important; }
+    /* BAJER 5: POŚWIATA EDYTORA PODCZAS PISANIA */
+    #ocrTextarea:focus {
+        border-left: 4px solid var(--neon) !important;
+        box-shadow: inset 0 0 15px rgba(0, 255, 65, 0.1), 0 0 15px rgba(0, 255, 65, 0.1);
+        outline: none;
+    }
 
     /* MATRIX TŁO */
     #matrix-bg { position: fixed; inset: 0; z-index: -1; opacity: 0.12; pointer-events: none; }
