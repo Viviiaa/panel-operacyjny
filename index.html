@@ -9,181 +9,128 @@
        :root {
         --neon: #00ff41;
         --white: #ffffff;
-        --glass: rgba(10, 10, 10, 0.95);
-        --dim: rgba(0, 255, 65, 0.15);
-        --glow: 0 0 20px rgba(0, 255, 65, 0.4);
+        --glass-deep: rgba(5, 5, 5, 0.98);
+        --glass-light: rgba(20, 20, 20, 0.6);
+        --dim-border: rgba(0, 255, 65, 0.12);
+        --glow-soft: 0 0 20px rgba(0, 255, 65, 0.1);
     }
 
     body, html {
         margin: 0; padding: 0;
         background: #000 !important;
         color: var(--neon) !important;
-        font-family: 'Segoe UI', sans-serif;
+        font-family: 'Segoe UI', system-ui, sans-serif;
         min-height: 100vh;
         overflow-x: hidden;
     }
 
-    /* --- EKRAN LOGOWANIA (ZACHOWANY) --- */
+    /* MATRIX TŁO - SUBTELNA POŚWIATA */
+    #matrix-bg { position: fixed; inset: 0; z-index: -1; opacity: 0.1; pointer-events: none; }
+
+    /* --- TWOJE IDEALNE LOGOWANIE (ZABLOKOWANE PRZED ZMIANAMI) --- */
     #loginOverlay {
         position: fixed; inset: 0; background: #000; z-index: 10000;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
     }
-
-    #loginOverlay::before, .oracle-avatar::before {
-        content: "Ξ";
-        font-size: 100px;
-        color: var(--white);
-        text-shadow: 0 0 30px var(--neon), 0 0 60px var(--neon);
-        z-index: 5;
-        position: relative;
-        animation: avatar-float 4s infinite ease-in-out;
+    #loginOverlay::before {
+        content: "Ξ"; font-size: 110px; color: var(--white);
+        text-shadow: 0 0 40px var(--neon); margin-bottom: 50px;
+        animation: breath-gate 4s infinite ease-in-out;
     }
-
-    #loginOverlay::after, .oracle-avatar::after {
-        content: ""; position: absolute;
-        width: 250px; height: 250px;
-        border: 2px solid var(--neon);
-        border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
-        animation: rotate-organic 8s infinite linear;
-        box-shadow: inset 0 0 30px var(--neon), 0 0 30px var(--neon);
-        opacity: 0.3;
-    }
-
-    @keyframes rotate-organic { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-    @keyframes avatar-float {
-        0%, 100% { transform: translateY(0) scale(1); }
-        50% { transform: translateY(-15px) scale(1.05); }
-    }
-
     #accessCode {
-        background: transparent; border: none; border-bottom: 3px solid var(--white);
-        color: var(--white); font-size: 4rem; text-align: center; width: 500px;
-        outline: none; letter-spacing: 20px; transition: 0.5s;
-        text-shadow: 0 0 20px var(--white); margin-top: 50px;
-        position: relative; z-index: 10001;
+        background: transparent; border: none; border-bottom: 2px solid var(--white);
+        color: var(--white); font-size: 3.5rem; text-align: center; width: 450px;
+        outline: none; letter-spacing: 15px; position: relative; z-index: 10001;
     }
+    @keyframes breath-gate { 0%, 100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.05); opacity: 1; } }
 
-    /* --- INTERFEJS SYSTEMOWY --- */
+    /* --- FINALNY SZLIF INTERFEJSU (TWOJE DIVY) --- */
     .app {
         max-width: 1750px;
-        margin: 40px auto;
-        background: var(--glass);
-        backdrop-filter: blur(40px);
-        border: 1px solid var(--dim);
-        border-radius: 35px;
-        padding: 40px;
-        box-shadow: 0 50px 150px #000;
+        margin: 30px auto;
+        padding: 45px;
+        background: var(--glass-deep);
+        backdrop-filter: blur(50px);
+        border: 1px solid var(--dim-border);
+        border-radius: 40px;
+        box-shadow: 0 60px 150px rgba(0,0,0,1);
         position: relative;
-        overflow: hidden;
     }
 
-    /* BAJER 1: LATAJĄCY NEON (SKANER) NA GÓRZE APKI */
-    .app::before {
-        content: "";
-        position: absolute;
-        top: 0; left: -100%;
-        width: 100%; height: 2px;
-        background: linear-gradient(90deg, transparent, var(--neon), transparent);
-        animation: scan-line 4s linear infinite;
-        z-index: 10;
-    }
-    @keyframes scan-line { 0% { left: -100%; } 100% { left: 100%; } }
-
-    /* PANELE - SZKŁO I KONTRAST */
-    .panel, #leftPanel, #centerPanel, #rightPanel, .section-card, .layout > div {
-        background: rgba(0, 0, 0, 0.7) !important;
-        border: 1px solid var(--dim) !important;
-        border-radius: 20px !important;
-        padding: 25px !important;
-        margin-bottom: 20px;
-        box-shadow: inset 0 0 30px #000;
-        position: relative;
-        overflow: hidden;
-    }
-
-    /* BAJER 2: SUBTELNY SYMBOL Ξ W TLE KAŻDEGO PANELU */
-    .panel::after, #leftPanel::after, #centerPanel::after, #rightPanel::after {
-        content: "Ξ";
-        position: absolute;
-        bottom: -20px; right: -10px;
-        font-size: 80px;
-        color: var(--neon);
-        opacity: 0.03;
+    /* EFEKT LATAJĄCEGO NEONU NA KRAWĘDZI CAŁEJ APKI */
+    .app::after {
+        content: ""; position: absolute; inset: 0;
+        border-radius: 40px; border: 1px solid transparent;
+        background: linear-gradient(120deg, transparent, var(--dim-border), transparent) border-box;
+        mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: destination-out; mask-composite: exclude;
         pointer-events: none;
-        font-family: serif;
     }
 
-    /* BIAŁE NAGŁÓWKI */
-    strong, h2, .small strong, .panel-title {
-        color: #ffffff !important;
-        text-transform: uppercase !important;
-        letter-spacing: 5px !important;
-        font-size: 0.8rem !important;
-        border-left: 4px solid var(--neon);
-        padding-left: 15px;
+    /* TWOJE PANELE - "CIĘTE SZKŁO" */
+    #leftPanel, #centerPanel, #rightPanel, .panel, .section-card {
+        background: var(--glass-light) !important;
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--dim-border) !important;
+        border-radius: 25px !important;
+        padding: 30px !important;
         margin-bottom: 20px;
+        box-shadow: inset 0 0 40px rgba(0,0,0,0.6);
+        transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .panel:hover { border-color: var(--neon) !important; transform: translateY(-5px); }
+
+    /* BIAŁE NAGŁÓWKI - OSTRE JAK BRZYTWA */
+    strong, h2, .small strong, .panel-title {
+        color: var(--white) !important;
+        text-transform: uppercase !important;
+        letter-spacing: 6px !important;
+        font-size: 0.75rem !important;
+        border-left: 5px solid var(--neon);
+        padding-left: 20px;
+        margin-bottom: 25px;
         display: block;
-        text-shadow: var(--glow);
+        text-shadow: 0 0 15px rgba(255,255,255,0.2);
     }
 
     /* PRZYCISKI - NEONOWE NARZĘDZIA */
-    button, .btn, .filebtn, .controls label {
+    button, .btn, .filebtn {
         background: transparent !important;
         border: 1px solid var(--neon) !important;
         color: var(--neon) !important;
-        padding: 12px 25px !important;
-        border-radius: 50px !important;
-        font-weight: bold;
+        padding: 14px 30px !important;
+        border-radius: 60px !important;
+        font-weight: 900;
         text-transform: uppercase;
+        letter-spacing: 3px;
         font-size: 0.7rem;
         cursor: pointer;
-        transition: 0.3s all cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        transition: 0.4s;
         display: inline-block !important;
-        text-decoration: none;
-        position: relative;
-        overflow: hidden;
     }
-
-    /* BAJER 3: LATAJĄCY BŁYSK NA PRZYCISKACH PRZY NAJECHANIU */
     button:hover, .filebtn:hover {
         background: var(--neon) !important;
         color: #000 !important;
-        box-shadow: 0 0 30px var(--neon);
-        transform: translateY(-3px);
+        box-shadow: 0 0 40px var(--neon);
+        transform: scale(1.05);
     }
 
-    /* BAJER 4: PULSUJĄCY NEON DLA PRZYCISKU EKSPORTU (Pancerny Akcent) */
-    button[onclick*="generateExcel"], .btn-main {
-        animation: pulse-border 2s infinite;
-    }
-    @keyframes pulse-border {
-        0% { box-shadow: 0 0 0 0 rgba(0, 255, 65, 0.4); }
-        70% { box-shadow: 0 0 0 15px rgba(0, 255, 65, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(0, 255, 65, 0); }
-    }
-
-    /* EDYTOR I LOGI */
+    /* EDYTOR I LOGI - ABSOLUTNY KONTRAST */
     #log, #logs, #ocrTextarea, #tableEditor {
         background: #000 !important;
         border: 1px solid #111 !important;
         color: var(--neon) !important;
-        font-family: 'Courier New', monospace;
-        padding: 20px;
-        border-radius: 15px;
-        width: 100%;
-        box-sizing: border-box;
-        transition: 0.3s;
+        font-family: 'Consolas', 'Courier New', monospace;
+        padding: 25px;
+        border-radius: 18px;
+        font-size: 14px;
+        line-height: 1.8;
     }
-    
-    /* BAJER 5: POŚWIATA EDYTORA PODCZAS PISANIA */
-    #ocrTextarea:focus {
-        border-left: 4px solid var(--neon) !important;
-        box-shadow: inset 0 0 15px rgba(0, 255, 65, 0.1), 0 0 15px rgba(0, 255, 65, 0.1);
-        outline: none;
-    }
+    #ocrTextarea { border-left: 4px solid var(--neon) !important; outline: none; }
+    #ocrTextarea:focus { box-shadow: inset 0 0 20px rgba(0,255,65,0.05); }
 
-    /* MATRIX TŁO */
-    #matrix-bg { position: fixed; inset: 0; z-index: -1; opacity: 0.12; pointer-events: none; }
+    /* MODUŁOWE DODATKI */
+    .pill, .chip { background: #000; border: 1px solid var(--dim-border); color: #fff; padding: 4px 12px; border-radius: 6px; font-size: 10px; text-transform: uppercase; }
 
     }
 
