@@ -8,83 +8,87 @@
 <style>
    :root {
         --acc: #00ff41;
-        --glow: 0 0 30px rgba(0, 255, 65, 0.2);
-        --glass-bg: rgba(10, 10, 10, 0.95);
+        --glass: rgba(12, 12, 12, 0.95);
+        --border: 1px solid rgba(0, 255, 65, 0.2);
+        --glow: 0 0 30px rgba(0, 255, 65, 0.1);
     }
 
-    body {
-        background: #000 !important;
-        color: var(--acc) !important;
-        font-family: 'Segoe UI', sans-serif;
-        margin: 0; padding: 20px;
-        min-height: 100vh;
+    body, html {
+        margin: 0; padding: 0; background: #000; color: var(--acc);
+        font-family: 'Segoe UI', sans-serif; min-height: 100vh; overflow-x: hidden;
     }
 
-    /* AVATAR Ξ - TWOJE SERCE SYSTEMU (Wklej to do HTML jeśli go nie masz) */
-    .oracle-avatar {
-        width: 100px; height: 100px; margin: 0 auto 30px;
-        position: relative; display: flex; align-items: center; justify-content: center;
-    }
-    .oracle-avatar::before { content: "Ξ"; font-size: 50px; text-shadow: 0 0 20px var(--acc); animation: heartbeat 4s infinite; }
-    @keyframes heartbeat { 0%, 100% { transform: scale(1); opacity: 0.6; } 50% { transform: scale(1.1); opacity: 1; } }
-
-    /* TWÓJ INTERFEJS - PRZYWRACAMY WIDOCZNOŚĆ WSZYSTKIEGO */
-    .app, .layout, .panel, .controls, .section-card {
-        display: block !important; /* Wymuszamy pokazanie wszystkiego */
-        visibility: visible !important;
-        opacity: 1 !important;
+    /* --- EKRAN LOGOWANIA: TWOJA BRAMA MOCY --- */
+    #loginOverlay {
+        position: fixed; inset: 0; background: #000; z-index: 10000;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
     }
 
-    /* EFEKT SZKŁA NA TWOICH PANELACH */
-    .panel, .section-card, #leftPanel, #centerPanel, #rightPanel {
-        background: var(--glass-bg) !important;
-        backdrop-filter: blur(30px);
-        border: 1px solid rgba(0, 255, 65, 0.15) !important;
-        border-radius: 20px !important;
-        padding: 25px !important;
-        box-shadow: 0 20px 50px rgba(0,0,0,0.9) !important;
-        margin-bottom: 20px;
+    /* AVATAR Ξ - LOGO WYROCZNI */
+    .oracle-avatar, #loginOverlay::before {
+        content: "Ξ"; font-size: 80px; color: var(--acc);
+        text-shadow: 0 0 30px var(--acc); margin-bottom: 40px;
+        animation: breath 4s infinite ease-in-out;
+        display: flex; align-items: center; justify-content: center;
+    }
+    @keyframes breath { 0%, 100% { opacity: 0.4; transform: scale(0.95); } 50% { opacity: 1; transform: scale(1.05); } }
+
+    #accessCode {
+        background: transparent; border: none; border-bottom: 2px solid var(--acc);
+        color: var(--acc); font-size: 2.5rem; text-align: center; width: 350px;
+        outline: none; letter-spacing: 10px; margin-bottom: 30px;
     }
 
-    /* BIAŁE NAGŁÓWKI DLA KONTRASTU (O KTÓRE PROSIŁAŚ) */
+    /* --- INTERFEJS GŁÓWNY: SZKLANA WIEŻA --- */
+    .app {
+        max-width: 1600px; margin: 40px auto; padding: 40px;
+        background: var(--glass); backdrop-filter: blur(40px);
+        border: var(--border); border-radius: 30px;
+        box-shadow: 0 50px 150px rgba(0,0,0,1);
+    }
+
+    /* LAYOUT TRZYKOLUMNOWY */
+    .layout {
+        display: grid; grid-template-columns: 400px 1fr 400px; gap: 25px; align-items: start;
+    }
+
+    /* PANELE - DYMIONE SZKŁO */
+    .panel, .section-card {
+        background: rgba(0,0,0,0.6) !important;
+        border: 1px solid rgba(0, 255, 65, 0.1) !important;
+        border-radius: 20px !important; padding: 25px !important;
+        box-shadow: inset 0 0 20px #000; margin-bottom: 20px;
+    }
+
+    /* BIAŁE NAGŁÓWKI - CZYTELNOŚĆ ARCHITEKTKI */
     strong, h2, .small strong {
         color: #FFFFFF !important;
-        text-transform: uppercase !important;
-        letter-spacing: 3px !important;
-        border-bottom: 1px solid rgba(0, 255, 65, 0.2);
-        padding-bottom: 10px;
-        margin-bottom: 15px;
-        display: block;
+        text-transform: uppercase; letter-spacing: 4px; font-size: 0.75rem;
+        display: block; border-bottom: 1px solid var(--dim);
+        padding-bottom: 12px; margin-bottom: 15px; opacity: 0.9;
     }
 
-    /* PRZYCISKI - NEONOWE I WIDOCZNE (W TYM IMPORT) */
-    button, .filebtn, .btn, .controls label {
+    /* PRZYCISKI - NEONOWE PILLS */
+    button, .filebtn, .btn {
         background: transparent !important;
         border: 1px solid var(--acc) !important;
         color: var(--acc) !important;
-        padding: 12px 25px !important;
-        border-radius: 50px !important;
-        cursor: pointer !important;
-        font-weight: bold !important;
-        text-transform: uppercase !important;
-        display: inline-block !important;
-        transition: 0.3s;
-        margin: 5px;
+        padding: 12px 25px !important; border-radius: 50px !important;
+        font-weight: bold; text-transform: uppercase; letter-spacing: 2px;
+        font-size: 0.7rem; cursor: pointer; transition: 0.4s;
+        margin: 5px 0; display: inline-block; text-align: center;
+    }
+    button:hover, .filebtn:hover { background: var(--acc) !important; color: #000 !important; box-shadow: 0 0 30px var(--acc); }
+
+    /* EDYTORY - PORZĄDEK W DANYCH */
+    #ocrTextarea, #tableEditor, #log {
+        background: #000 !important; border: 1px solid #111 !important;
+        color: var(--acc) !important; font-family: 'Courier New', monospace;
+        padding: 15px; border-radius: 12px; width: 100%; box-sizing: border-box;
     }
 
-    button:hover, .filebtn:hover {
-        background: var(--acc) !important;
-        color: #000 !important;
-        box-shadow: 0 0 30px var(--acc);
-    }
-
-    /* EDYTOR I TERMINAL - CZYSTOŚĆ */
-    #logs, #log, #ocrTextarea, #tableEditor {
-        background: #000 !important;
-        border: 1px solid #111 !important;
-        color: var(--acc) !important;
-        padding: 15px !important;
-        border-radius: 12px !important;
+    /* STOPKA MODUŁOWA */
+    .footer { margin-top: 30px; border-top: 1px solid rgba(0,255,65,0.1); padding-top: 20px; font-size: 10px; opacity: 0.3; }
 
     }
 
