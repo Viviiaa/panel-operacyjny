@@ -873,21 +873,14 @@ async function generateExcelFile() {
             s: { font: { name: "Courier New", sz: 10 } }
         })));
 
-        const ws = XLSX.utils.aoa_to_sheet(formattedRows);
-
         // Luksusowe dopasowanie szerokości kolumn
-        if (formattedRows.length > 0) {
-            ws['!cols'] = formattedRows[0].map((_, i) => ({
-                wch: Math.max(...formattedRows.map(row => row[i] && row[i].v ? row[i].v.toString().length : 10)) + 5
-            }));
-        }
-
+        const ws = XLSX.utils.aoa_to_sheet(formattedRows);
+        
         XLSX.utils.book_append_sheet(wb, ws, "Raport_Wyroczni");
         
         log("SYSTEM: Generowanie pliku XLSX...");
         XLSX.writeFile(wb, 'Wyrocznia_Premium_Report.xlsx');
-        log("SUKCES: Plik został pobrany.");
-
+        log("SUKCES: Plik został pobrany.");   
     } catch (error) {
         log("CRITICAL_ERROR: " + error.message);
         console.error("Szczegóły:", error);
