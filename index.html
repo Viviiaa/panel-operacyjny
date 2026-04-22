@@ -143,7 +143,7 @@
     <label class="filebtn">+ IMPORTUJ DANE SUROWE
       <input id="files" type="file" multiple accept=".pdf,image/*,.png,.jpg,.jpeg,.docx,.doc" />
     </label>
-    < id="processAll" class="btn">URUCHOM EKSTRAKCJĘ OCR ENGINE</button>
+    <button id="processAll" class="btn">URUCHOM EKSTRAKCJĘ OCR ENGINE</button>
     <div class="pill" id="fileCount">STATUS: OCZEKIWANIE NA KOLEJKĘ</div>
     <div class="chip" id="langChip">LINGUISTIC MODULE: MULTI-AUTO</div>
     </div>
@@ -199,8 +199,8 @@
       </div>
 
       <div style="margin-top:12px;display:flex;gap:8px;flex-direction:column">
-        <button id="exportXLSX" class="btn" onclick="generateExcelFile()">KOMPILUJ RAPORT ANALITYCZNY (.XLSX)</button>
-        <button id="downloadJSON" class="btn" onclick="downloadJSON()">ZRZUT METADANYCH STRUKTURALNYCH (JSON)</button>
+        <button id="exportXLSX" class="btn">KOMPILUJ RAPORT ANALITYCZNY (.XLSX)</button>
+        <button id="downloadJSON" class="btn">ZRZUT METADANYCH STRUKTURALNYCH (JSON)</button>
         <button id="clearAll" class="btn">WYZERUJ BUFOR I ŚRODOWISKO OPERACYJNE</button>
       </div>
 
@@ -827,64 +827,49 @@ exportBtn.addEventListener('click', () => {
     generateExcelFile();
 });
 
-async function generateExcelFile() {
-    log("SYSTEM: Inicjalizacja inteligentnej ekstrakcji AI...");
-    const textarea = document.getElementById('ocrTextarea');
-    const currentText = textarea ? textarea.value : "";
-    
-    if (currentText.length < 10) {
-        log("BŁĄD: Edytor jest pusty. Nie mam czego analizować.");
-        return;
-    }
-
+function generateExcelFile() {
+    // 1. POBIERAMY TREŚĆ PROSTO Z EDYTORA (NA ŻYWO)
+    const currentText = document.getElementById('ocrTextarea').value;
     const wb = XLSX.utils.book_new();
 
-    try {
-        log("PROCES_AI: Rozpoznawanie typu dokumentu i segregacja...");
-        
-        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Authorization": "Bearer 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",
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                model: "llama3-8b-8192",
-                messages: [{
-                    role: "user",
-                    content: "Zrób tabelę CSV (separator ;). TEKST: " + currentText.replace(/["\n\r]/g, " "),
-            }]
-            })
-        });
+    processedSheets.forEach((s, index) => {
+        // 2. Jeśli edytujesz właśnie ten plik, bierzemy tekst z edytora
+        // Jeśli plików jest więcej, bierzemy ich treść z pamięci
+        let rawText = s.rows;
+        if (typeof currentView !== 'undefined' && currentView.fileIndex === index) {
+            rawText = currentText;
+        } else if (!rawText) {
+            rawText = s.text || "";
+        }
 
-        if (!response.ok) throw new Error("API nie odpowiada: " + response.status);
+        const lines = Array.isArray(rawText) ? rawText.join('\n').split('\n') : rawText.split('\n');
+        const keywords = ["FAKTURA", "NIP", "SUMA", "RAZEM", "SPRZEDAWCA", "NABYWCA", "NETTO", "BRUTTO"];
 
-        const data = await response.json();
-        const aiResult = data.choices[0].message.content;
+        const formattedRows = lines.map(line => {
+            const cells = line.trim().split(/\s{2,}/);
+            const isImportant = keywords.some(k => line.toUpperCase().includes(k));
+            
+            return cells.map(cell => ({
+                v: cell, 
+                t: 's',
+                s: { font: { bold: isImportant, name: "Courier New" } }
+            }));
+        }).filter(row => row.length > 0);
 
-        // Filtr "antysrakowy" - usuwa śmieci od AI
-        aiResult = aiResult.replace(/```csv|```|Oto tabela:|Oto dane:/gi, "").trim();
-        log("SYSTEM: Dane ułożone. Budowanie arkusza...");
-
-        const lines = aiResult.split('\n').filter(line => line.includes(';'));
-        const formattedRows = lines.map(line => line.split(';').map(cell => ({ 
-            v: cell.trim(), 
-            t: 's',
-            s: { font: { name: "Courier New", sz: 10 } }
-        })));
-
-        // Luksusowe dopasowanie szerokości kolumn
         const ws = XLSX.utils.aoa_to_sheet(formattedRows);
         
-        XLSX.utils.book_append_sheet(wb, ws, "Raport_Wyroczni");
+        // Auto-szerokość kolumn
+        if (formattedRows.length > 0) {
+            ws['!cols'] = formattedRows.map((_, i) => ({
+                wch: Math.max(...formattedRows.map(row => row[i] ? row[i].v.toString().length : 10)) + 5
+            }));
+        }
         
-        log("SYSTEM: Generowanie pliku XLSX...");
-        XLSX.writeFile(wb, 'Wyrocznia_Premium_Report.xlsx', { compression: true });
-        log("SUKCES: Plik powinien zacząć się pobierać.");  
-    } catch (error) {
-        log("CRITICAL_ERROR: " + error.message);
-        console.error("Szczegóły:", error);
-    }
+        XLSX.utils.book_append_sheet(wb, ws, s.name.slice(0, 31));
+    });
+
+    XLSX.writeFile(wb, 'Wyrocznia_Raport_Premium.xlsx');
+    log('System: Eksport zakończony sukcesem.');
 }
 
 function forceExport() {
@@ -892,7 +877,7 @@ function forceExport() {
     log("OSTRZEŻENIE: Wymuszono eksport danych mimo anomalii.");
     generateExcelFile();
 }
-       
+
 /* --- SYSTEM DOSTĘPU I INICJALIZACJA --- */
 function checkAccess() {
     const input = document.getElementById('accessCode');
@@ -927,12 +912,922 @@ document.getElementById('accessCode')?.addEventListener('keypress', (e) => {
 window.onload = () => {
     log("Wyrocznia OS v2.0: Oczekiwanie na autoryzację...");
 };
+</script>
+</body>
+</html><!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SYSTEM OPERACYJNY: WYROCZNIA</title>
 
-       function saveChanges() {
-    log("SYSTEM: Tekst w edytorze gotowy do eksportu.");
+<style>
+       :root {
+        --acc: #00ff41;
+        --white: #ffffff;
+        --glass: rgba(8, 8, 8, 0.98);
+        --dim: rgba(0, 255, 65, 0.15);
+    }
+
+    body, html {
+        margin: 0; padding: 0; background: #000; color: var(--acc);
+        font-family: 'Segoe UI', sans-serif; min-height: 100vh; overflow-x: hidden;
+    }
+
+    /* --- TWOJE IDEALNE LOGOWANIE (LINIE 32-71 - PRZYWRÓCONE 1:1) --- */
+    #loginOverlay {
+        position: fixed; inset: 0; background: #000; z-index: 10000;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    #loginOverlay::before {
+        content: "Ξ"; font-size: 110px; color: var(--white);
+        text-shadow: 0 0 50px var(--acc); margin-bottom: 50px;
+        animation: breath-gate 4s infinite ease-in-out;
+    }
+    #loginOverlay::after {
+        content: ""; position: absolute; width: 280px; height: 280px;
+        border: 2px solid var(--acc); border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+        animation: rotate-portal 10s infinite linear; box-shadow: inset 0 0 40px var(--acc); opacity: 0.3;
+    }
+    @keyframes rotate-portal { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes breath-gate { 0%, 100% { transform: scale(1); opacity: 0.4; } 50% { transform: scale(1.05); opacity: 1; } }
+
+    /* HASŁO - NAPRAWIONE CELOWANIE */
+    #accessCode {
+        background: transparent; border: none; border-bottom: 2px solid var(--white);
+        color: var(--white); font-size: 4rem; text-align: center; width: 450px;
+        outline: none; letter-spacing: 15px; position: relative; z-index: 10001;
+    }
+
+    /* --- NOWOCZESNA RENOWACJA SYSTEMU (TWOJE DIVY) --- */
+    .app {
+        max-width: 1750px; margin: 40px auto; padding: 50px;
+        background: var(--glass); backdrop-filter: blur(60px);
+        border: 1px solid var(--dim); border-radius: 45px;
+        box-shadow: 0 50px 150px #000; position: relative; overflow: hidden;
+    }
+
+    /* LATAJĄCY SKANER ENERGII NA GÓRZE */
+    .app::before {
+        content: ""; position: absolute; top: 0; left: -100%; width: 100%; height: 2px;
+        background: linear-gradient(90deg, transparent, var(--acc), transparent);
+        animation: scan-line 6s linear infinite;
+    }
+    @keyframes scan-line { 0% { left: -100%; } 100% { left: 100%; } }
+
+    /* PANELE - SZKLANE I CIĘŻKIE (NOWOCZESNE) */
+    .panel, #leftPanel, #centerPanel, #rightPanel, .section-card {
+        background: rgba(0, 0, 0, 0.7) !important;
+        border: 1px solid var(--dim) !important;
+        border-radius: 25px !important; padding: 35px !important;
+        margin-bottom: 25px; box-shadow: inset 0 0 30px #000;
+        transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .panel:hover { border-color: var(--acc) !important; transform: translateY(-5px); }
+
+    /* BIAŁE NAGŁÓWKI - TWOJA CZYTELNOŚĆ PREMIUM */
+    strong, h2, .small strong, .panel-title {
+        color: var(--white) !important; text-transform: uppercase !important;
+        letter-spacing: 6px !important; font-size: 0.8rem !important;
+        border-left: 5px solid var(--acc); padding-left: 20px;
+        margin-bottom: 25px; display: block;
+    }
+
+    /* PRZYCISKI - NEONOWE TABLETKI */
+    button, .btn, .filebtn {
+        background: transparent !important; border: 1px solid var(--acc) !important;
+        color: var(--acc) !important; padding: 12px 28px !important;
+        border-radius: 50px !important; font-weight: bold; text-transform: uppercase;
+        font-size: 0.7rem; cursor: pointer; transition: 0.3s;
+    }
+    button:hover { background: var(--acc) !important; color: #000 !important; box-shadow: 0 0 30px var(--acc); }
+
+    /* EDYTOR I LOGI - PANCERNA CZERŃ */
+    #log, #logs, #ocrTextarea {
+        background: #000 !important; border: 1px solid #111 !important;
+        color: var(--acc) !important; font-family: monospace;
+        padding: 25px; border-radius: 20px; line-height: 1.7;
+    }
+    #ocrTextarea { border-left: 4px solid var(--acc) !important; }
+
+    /* MATRIX TŁO */
+    #matrix-bg { position: fixed; inset: 0; z-index: -1; opacity: 0.1; pointer-events: none; }
+    }
+
+</style>
+
+
+<!-- Libraries -->
+<script src="https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+<script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+
+</head>
+<body>
+  <!-- EKRAN LOGOWANIA -->
+<div id="loginOverlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#000; color:#0f0; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:9999; font-family:monospace;">
+    <h1 style="color:#0f0; border-bottom: 2px solid #0f0; margin-bottom: 20px;">SYSTEM OPERACYJNY: WYROCZNIA</h1>
+    <p>PODAJ KOD DOSTĘPU:</p>
+    <input type="password" id="accessCode" style="background:#111; color:#0f0; border:1px solid #0f0; padding:10px; text-align:center; font-size:20px; outline:none;">
+    <button onclick="checkAccess()" style="margin-top:20px; background:#0f0; color:#000; border:none; padding:10px 20px; cursor:pointer; font-weight:bold;">AUTORYZUJ</button>
+    <p id="loginError" style="color:red; margin-top:10px; display:none;">DOSTĘP ZABLOKOWANY</p>
+</div>
+
+    <!-- SYSTEMOWY ALERT BŁĘDU -->
+<div id="errorOverlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(150,0,0,0.9); color:#fff; display:none; flex-direction:column; align-items:center; justify-content:center; z-index:10000; font-family:monospace; text-align:center; padding: 20px;">
+    <h1 style="font-size: 50px; text-shadow: 0 0 20px #fff; margin:0;">!!! NARUSZENIE LOGIKI DANYCH !!!</h1>
+    <div id="errorDetails" style="background:#000; color:#ff0000; padding:20px; border:3px dashed #fff; margin:20px 0; max-width:80%; font-size:18px; text-align:left;">
+        <!-- Tu wskoczą błędy z Twojego Strażnika -->
+    </div>
+    <div style="display:flex; gap:20px;">
+        <button onclick="document.getElementById('errorOverlay').style.display='none'" style="background:#fff; color:#900; border:none; padding:15px 30px; font-weight:bold; cursor:pointer;">POWRÓT DO EDYCJI</button>
+        <button onclick="forceExport()" style="background:transparent; border:2px solid #fff; color:#fff; padding:15px 30px; cursor:pointer;">EKSPORTUJ MIMO BŁĘDÓW</button>
+    </div>
+- </div>
+
+<div class="app" role="main">
+  <header>
+    <div class="logo">[Ω]</div>
+    <div>
+      <h1>WYROCZNIA // DATA INTELLIGENCE SYSTEM</h1>
+      <p class="lead">AUTONOMICZNA EKSTRAKCJA STRUKTURALNA I WERYFIKACJA LOGIKI</p>
+    </div>
+  </header>
+
+  <div class="controls">
+    <label class="filebtn">+ IMPORTUJ DANE SUROWE
+      <input id="files" type="file" multiple accept=".pdf,image/*,.png,.jpg,.jpeg,.docx,.doc" />
+    </label>
+    <button id="processAll" class="btn">URUCHOM EKSTRAKCJĘ OCR ENGINE</button>
+    <div class="pill" id="fileCount">STATUS: OCZEKIWANIE NA KOLEJKĘ</div>
+    <div class="chip" id="langChip">LINGUISTIC MODULE: MULTI-AUTO</div>
+    </div>
+- </div>
+
+  <div class="layout">
+    <div class="panel" id="leftPanel">
+      <div class="small"><strong>ZASOBY WEJŚCIOWE // DATASET</strong></div>
+      <div id="fileList" style="margin-top:8px"></div>
+      <div style="margin-top:8px;">
+        <div class="small"><strong>KONSOLA OPERACYJNA // LOGI SYSTEMOWE</strong></div>
+        <div id="log" class="log" style="margin-top:8px;max-height:220px;overflow:auto"></div>
+      </div>
+
+               <div style="margin-top:12px">
+        <div class="small"></div>
+        <div class="table-edit" id="tableEditor" style="margin-top:0px;min-height:0px"></div>
+      </div>
+  
+        <div class="section-card">
+    <h2 style="font-size: 14px; background: #003b00; padding: 5px;">[ EDYCJA DANYCH PRZED EKSPORTEM ]</h2>
+    <textarea id="ocrTextarea" style="width: 100%; height: 200px; background: #000; color: #00ff41; border: 1px solid #00ff41; font-family: 'Courier New', monospace;"></textarea>
+    <button onclick="saveChanges()" style="margin-top: 10px;">ZATWIERDŹ ZMIANY</button>
+</div>
+
+
+    <div class="panel" id="centerPanel">
+      <div class="small"><strong>SKANOWANIE WARSTWOWE // PODGLĄD OBIEKTU</strong></div>
+      <div class="canvas-preview" id="canvasArea">
+        <div class="small">OCZEKIWANIE NA WYBÓR OBIEKTU DO WIZUALIZACJI...</div>
+      </div>
+
+      <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <div class="pill" id="pageInfo">SEKCJA: [ID_NULL]</div>
+        <button id="prevPage" class="btn">◀</button>
+        <button id="nextPage" class="btn">▶</button>
+        <div class="pill" id="ocrStatus">SILNIK OCR: STANDBY</div>
+        <div class="progress" style="flex:1"><i id="progFill"></i></div>
+      </div>
+
+      <div style="margin-top:8px;display:flex;gap:8px">
+        <button id="applyChanges" class="btn">ZAPISZ KOREKTĘ (MANUAL OVERRIDE)</button>
+        <button id="reRunOCR" class="btn">RE-SKANOWANIE (PARAMETRY NIESTANDARDOWE)</button>
+        <div class="chip" id="autoFixChip">LOGIC-SHIELD: ACTIVE</div>
+      </div>
+    </div>
+
+    <div class="panel" id="rightPanel">
+      <div class="small"><strong>GENEROWANIE RAPORTU FINALNEGO // EXPORT</strong></div>
+      <div style="margin-top:8px">
+        <div class="small">KOLEJKA STRUKTUR DANYCH (KLASYFIKACJA ARKUSZY)</div>
+        <div id="sheetsList" style="margin-top:8px"></div>
+      </div>
+
+      <div style="margin-top:12px;display:flex;gap:8px;flex-direction:column">
+        <button id="exportXLSX" class="btn">KOMPILUJ RAPORT ANALITYCZNY (.XLSX)</button>
+        <button id="downloadJSON" class="btn">ZRZUT METADANYCH STRUKTURALNYCH (JSON)</button>
+        <button id="clearAll" class="btn">WYZERUJ BUFOR I ŚRODOWISKO OPERACYJNE</button>
+      </div>
+
+      <div style="margin-top:12px" class="small warn">SECURITY PROTOCOL: PRZETWARZANIE END-TO-END (LOCAL STORAGE ONLY)</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="small">TIMESTAMP: [2026-04-21] // SYSTEM_LIVE</div>
+    <div class="small">CORE MODULES: pdf.js_v2 // image_preprocessing // heuristic_table_mapping // manual_override_editor</div>
+  </div>
+</div>
+
+<script>
+/* Globals */
+const filesInput = document.getElementById('files');
+const fileCount = document.getElementById('fileCount');
+const fileList = document.getElementById('fileList');
+const logEl = document.getElementById('log');
+const processAllBtn = document.getElementById('processAll');
+const canvasArea = document.getElementById('canvasArea');
+const progFill = document.getElementById('progFill');
+const pageInfo = document.getElementById('pageInfo');
+const prevPageBtn = document.getElementById('prevPage');
+const nextPageBtn = document.getElementById('nextPage');
+const ocrStatus = document.getElementById('ocrStatus');
+const tableEditor = document.getElementById('tableEditor');
+const applyChangesBtn = document.getElementById('applyChanges');
+const reRunOCRBtn = document.getElementById('reRunOCR');
+const sheetsList = document.getElementById('sheetsList');
+const exportBtn = document.getElementById('exportXLSX');
+const downloadJSONBtn = document.getElementById('downloadJSON');
+const clearAllBtn = document.getElementById('clearAll');
+const langChip = document.getElementById('langChip');
+const autoFixChip = document.getElementById('autoFixChip');
+
+
+let files = [];
+let processedSheets = []; // {fileIndex, pageIndex, name, rows}
+let currentView = {fileIndex:null, pageIndex:0, canvas:null, imageData:null, sheetIndex:null};
+let tesseractWorker = null;
+let ocrLang = 'pol+eng'; // auto: attempt pol then eng
+let autoFix = true;
+
+/* Utilities */
+function log(msg){ const time = new Date().toLocaleTimeString(); logEl.textContent += `[${time}] ${msg}\\n`; logEl.scrollTop = logEl.scrollHeight; }
+function setProgress(p){ progFill.style.width = Math.max(0,Math.min(100,p)) + '%'; }
+function setOcrStatus(s){ ocrStatus.textContent = 'OCR: ' + s; }
+function resetUI() {
+    if(typeof fileList !== 'undefined') fileList.innerHTML = '';
+    if(typeof sheetsList !== 'undefined') sheetsList.innerHTML = '';
+    
+    // Czyścimy Twój nowy, czarny edytor tekstowy
+    const ocrArea = document.getElementById('ocrTextarea');
+    if(ocrArea) ocrArea.value = '';
+    
+    // Resetujemy widok płótna (canvas)
+    const canvasArea = document.getElementById('canvasArea');
+    if(canvasArea) canvasArea.innerHTML = '<div class="small">OCZEKIWANIE NA WYBÓR OBIEKTU DO WIZUALIZACJI...</div>';
+    
+    if(typeof fileCount !== 'undefined') fileCount.textContent = 'STATUS: OCZEKIWANIE NA KOLEJKĘ';
 }
 
-       
+/* Load Tesseract worker once */
+async function getTesseractWorker() {
+  if (tesseractWorker) return tesseractWorker;
+
+  log("Inicjalizacja Tesseract...");
+  
+  tesseractWorker = await Tesseract.createWorker({
+    logger: m => {
+      if (m.status === 'recognizing text' && m.progress) {
+        setProgress(10 + Math.round(m.progress * 70));
+      }
+      log('Tesseract: ' + (m.status || '') + (m.progress ? ' ' + Math.round(m.progress * 100) + '%' : ''));
+    }
+  });
+
+  await tesseractWorker.load();
+  await tesseractWorker.loadLanguage('pol');
+  await tesseractWorker.initialize('pol');
+  
+ await tesseractWorker.setParameters({
+    tessedit_pageseg_mode: '4',         // TRYB 4: Widzi kolumny i tabele
+    preserve_interword_spaces: '1',     // Zachowuje duże odstępy (klucz do kolumn)
+    tessedit_char_whitelist: '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz .,-/():'
+});
+
+  log("Tesseract gotowy.");
+  return tesseractWorker;
+}
+
+/* File selection */
+filesInput.addEventListener('change', (e)=>{
+  files = Array.from(e.target.files);
+  fileCount.textContent = files.length + ' plik(ów)';
+  renderFileList();
+  log('Wybrane pliki: ' + files.map(f=>f.name).join(', '));
+});
+
+/* Render file list with per-file controls */
+function renderFileList(){
+  fileList.innerHTML = '';
+  files.forEach((f,idx)=>{
+    const div = document.createElement('div');
+    div.className='file-item';
+    const meta = document.createElement('div'); meta.className='file-meta';
+    const name = document.createElement('div'); name.className='file-name'; name.textContent = f.name;
+    const size = document.createElement('div'); size.className='small'; size.textContent = (f.size/1024|0) + ' KB';
+    meta.appendChild(name); meta.appendChild(size);
+    const actions = document.createElement('div');
+    const viewBtn = document.createElement('button'); viewBtn.className='btn'; viewBtn.textContent='Podgląd';
+    viewBtn.onclick = ()=>openFilePreview(idx);
+    const removeBtn = document.createElement('button'); removeBtn.className='btn'; removeBtn.textContent='Usuń';
+    removeBtn.onclick = ()=>{ files.splice(idx,1); renderFileList(); fileCount.textContent = files.length + ' plik(ów)'; }
+    actions.appendChild(viewBtn); actions.appendChild(removeBtn);
+    div.appendChild(meta); div.appendChild(actions);
+    fileList.appendChild(div);
+  });
+}
+
+/* Open preview (for PDF: render first page via pdf.js; for image: show image; for docx: try to extract first table preview) */
+async function openFilePreview(index){
+  const f = files[index];
+  currentView.fileIndex = index;
+  currentView.pageIndex = 0;
+  tableEditor.innerHTML = '';
+  setProgress(0);
+  canvasArea.innerHTML = '';
+  if(!f) return;
+  const ext = (f.name.split('.').pop()||'').toLowerCase();
+  if(ext === 'pdf'){
+    // render pages via pdf.js
+    const arrayBuffer = await f.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({data:arrayBuffer}).promise;
+    currentView.totalPages = pdf.numPages;
+    log(`PDF: ${f.name} — strony: ${pdf.numPages}`);
+    // render page
+    await renderPdfPage(pdf, 1);
+    pageInfo.textContent = 'Strona: 1 / ' + pdf.numPages;
+    // attach navigation handlers
+    prevPageBtn.onclick = async ()=>{ if(currentView.pageIndex>1){ await renderPdfPage(pdf, currentView.pageIndex-1); pageInfo.textContent = 'Strona: ' + currentView.pageIndex + ' / ' + pdf.numPages; } };
+    nextPageBtn.onclick = async ()=>{ if(currentView.pageIndex<pdf.numPages){ await renderPdfPage(pdf, currentView.pageIndex+1); pageInfo.textContent = 'Strona: ' + currentView.pageIndex + ' / ' + pdf.numPages; } };
+  } else if(['png','jpg','jpeg','bmp','webp'].includes(ext)){
+    const dataURL = await readFileAsDataURL(f);
+    await renderImageToCanvas(dataURL);
+    pageInfo.textContent = 'Obraz';
+    prevPageBtn.onclick = ()=>{};
+    nextPageBtn.onclick = ()=>{};
+  } else if(ext === 'docx'){
+    // parse docx tables and show first table if exists
+    const arr = await parseDocxTables(f);
+    if(arr.length){
+      // show first table as editable
+      processedSheets = processedSheets.filter(s=>s.fileIndex!==index); // remove old
+      arr.forEach((tbl,i)=>{
+        processedSheets.push({fileIndex:index, pageIndex:0, name: f.name + ' - table' + (i+1), rows: normalizeRows(tbl.rows)});
+      });
+      renderSheetsList();
+      showSheet(processedSheets.findIndex(s=>s.fileIndex===index));
+    } else {
+      canvasArea.innerHTML = '<div class="small">Brak tabel w docx.</div>';
+    }
+  } else if(ext === 'doc'){
+    const text = await f.text();
+    canvasArea.innerHTML = '<div class="small">Plik .doc (obrabiany jako tekst). Podgląd pierwszych linii:</div><pre style="white-space:pre-wrap;margin-top:8px;color:var(--muted)">' + text.slice(0,2000) + '</pre>';
+  } else {
+    canvasArea.innerHTML = '<div class="small">Typ pliku nieobsługiwany do podglądu — użyj przycisku "Przetwórz wybrane" aby spróbować OCR.</div>';
+  }
+}
+
+/* Read file helpers */
+function readFileAsDataURL(file){ return new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=rej; fr.readAsDataURL(file); }); }
+function readFileAsArrayBuffer(file){ return new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=rej; fr.readAsArrayBuffer(file); }); }
+
+/* PDF rendering with canvas and basic image preprocessing */
+async function renderPdfPage(pdf, pageNum){
+  const page = await pdf.getPage(pageNum);
+  const viewport = page.getViewport({scale:1.5});
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.min(viewport.width, 1400);
+  canvas.height = viewport.height * (canvas.width/viewport.width);
+  const ctx = canvas.getContext('2d');
+  const renderContext = { canvasContext: ctx, viewport: page.getViewport({scale: canvas.width/viewport.width}) };
+  await page.render(renderContext).promise;
+  // show canvas
+  canvasArea.innerHTML = '';
+  canvasArea.appendChild(canvas);
+  currentView.canvas = canvas;
+  currentView.pageIndex = pageNum;
+  currentView.pdf = pdf;
+  // extract image data for processing
+  currentView.imageData = ctx.getImageData(0,0,canvas.width,canvas.height);
+  // detect table lines for visual overlay (simple)
+  const overlay = detectTableLines(currentView.imageData);
+  if(overlay) drawOverlay(canvas, overlay);
+  // attempt to auto-extract table automatically (deferred to processing step)
+}
+
+/* Image rendering path */
+async function renderImageToCanvas(dataURL){
+  const img = new Image();
+  img.src = dataURL;
+  await new Promise(r=>{ img.onload=r; img.onerror=r; });
+  const canvas = document.createElement('canvas');
+  const maxW = 1000;
+  const scale = Math.min(1, maxW / img.width);
+  canvas.width = Math.round(img.width * scale);
+  canvas.height = Math.round(img.height * scale);
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img,0,0,canvas.width,canvas.height);
+  canvasArea.innerHTML = ''; canvasArea.appendChild(canvas);
+  currentView.canvas = canvas;
+  currentView.imageData = ctx.getImageData(0,0,canvas.width,canvas.height);
+  const overlay = detectTableLines(currentView.imageData);
+  if(overlay) drawOverlay(canvas, overlay);
+}
+
+/* Simple image preprocessing: grayscale, contrast, binarize, resize */
+function preprocessImageData(imageData, opts={scale:1, binarize:true, contrast:1.2}) {
+  const w = Math.max(1, Math.round(imageData.width * opts.scale));
+  const h = Math.max(1, Math.round(imageData.height * opts.scale));
+  const canvas = document.createElement('canvas'); canvas.width=w; canvas.height=h;
+  const ctx = canvas.getContext('2d');
+  // put original into temp canvas scaled
+  const tmp = document.createElement('canvas'); tmp.width=imageData.width; tmp.height=imageData.height; tmp.getContext('2d').putImageData(imageData,0,0);
+  ctx.drawImage(tmp,0,0,imageData.width,imageData.height,0,0,w,h);
+  let id = ctx.getImageData(0,0,w,h);
+  const data = id.data;
+  // grayscale + contrast + optional binarize
+  for(let i=0;i<data.length;i+=4){
+    const r = data[i], g = data[i+1], b = data[i+2];
+    let lum = 0.2126*r + 0.7152*g + 0.0722*b;
+    // contrast
+    lum = ((lum - 128) * opts.contrast) + 128;
+    if(opts.binarize){
+      const v = lum > 150 ? 255 : 0;
+      data[i]=data[i+1]=data[i+2]=v;
+    } else {
+      data[i]=data[i+1]=data[i+2]=lum;
+    }
+  }
+  ctx.putImageData(id,0,0);
+  return canvas.toDataURL('image/png');
+}
+
+/* Detect simple table lines via projection/profile (returns array of horizontal and vertical line positions) */
+function detectTableLines(imageData){
+  try{
+    const w = imageData.width, h = imageData.height;
+    const data = imageData.data;
+    // compute vertical and horizontal projections of "dark" pixels
+    const vert = new Uint32Array(w);
+    const hor = new Uint32Array(h);
+    for(let y=0;y<h;y++){
+      for(let x=0;x<w;x++){
+        const i = (y*w + x)*4;
+        const r=data[i], g=data[i+1], b=data[i+2];
+        const lum = 0.2126*r + 0.7152*g + 0.0722*b;
+        if(lum < 200){ vert[x]++; hor[y]++; }
+      }
+    }
+    // find peaks (lines) where counts exceed threshold
+    const vlines = []; const hlines = [];
+    const vth = Math.max(3, Math.round(h*0.01));
+    const hth = Math.max(3, Math.round(w*0.01));
+    for(let x=1;x<w-1;x++){
+      if(vert[x] > vth && vert[x] > vert[x-1] && vert[x] >= vert[x+1]) vlines.push(x);
+    }
+    for(let y=1;y<h-1;y++){
+      if(hor[y] > hth && hor[y] > hor[y-1] && hor[y] >= hor[y+1]) hlines.push(y);
+    }
+    if(vlines.length||hlines.length) return {vlines, hlines};
+    return null;
+  }catch(e){ console.error(e); return null; }
+}
+
+/* Draw overlay lines on canvas */
+function drawOverlay(canvas, overlay){
+  const ctx = canvas.getContext('2d');
+  ctx.save();
+  ctx.strokeStyle = 'rgba(125,211,252,0.6)';
+  ctx.lineWidth = 1;
+  overlay.hlines && overlay.hlines.forEach(y=>{ ctx.beginPath(); ctx.moveTo(0.5,y+0.5); ctx.lineTo(canvas.width+0.5,y+0.5); ctx.stroke(); });
+  overlay.vlines && overlay.vlines.forEach(x=>{ ctx.beginPath(); ctx.moveTo(x+0.5,0.5); ctx.lineTo(x+0.5,canvas.height+0.5); ctx.stroke(); });
+  ctx.restore();
+}
+
+/* Parse DOCX tables via Mammoth */
+async function parseDocxTables(file){
+  try{
+    const arrayBuffer = await readFileAsArrayBuffer(file);
+    const m = await mammoth.convertToHtml({arrayBuffer});
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(m.value,'text/html');
+    const tables = doc.querySelectorAll('table');
+    const out = [];
+    tables.forEach(t=>{
+      const rows = Array.from(t.rows).map(r=>Array.from(r.cells).map(c=>c.textContent.trim()));
+      out.push({rows});
+    });
+    return out;
+  } catch(e){
+    log('Błąd parsowania docx: ' + e.message);
+    return [];
+  }
+}
+
+/* Heuristic cleaning: trim, normalize spaces, fix broken number groups, detect dates */
+function cleanCellText(s){
+  if(!s && s!==0) return '';
+  let t = (''+s).replace(/\\s+/g,' ').trim();
+  // fix common OCR mistakes
+  t = t.replace(/I(?=\\d)/g,'1'); // I123 -> 1123 may be wrong but helps
+  t = t.replace(/O(?=\\d)/g,'0');
+  t = t.replace(/, (?=\\d{3})/g,''); // remove thousand separators wrongly spaced
+  // normalize decimal comma/dot: if contains both, keep last separator
+  if(/[\\d][,\\.][\\d]/.test(t)){
+    // nothing aggressive
+  }
+  return t;
+}
+
+/* Normalize rows to rectangle */
+function normalizeRows(rows){
+  const max = Math.max(...rows.map(r=>r.length));
+  return rows.map(r=>{ const nr = r.slice(); while(nr.length<max) nr.push(''); return nr.map(cleanCellText); });
+}
+
+/* OCR flow for current canvas */
+async function runOCROnCurrentCanvas(opts={binarize:true,scale:1.6}){
+  if(!currentView.canvas || !currentView.imageData) { setOcrStatus('brak obrazu'); return null; }
+  setOcrStatus('inicjalizacja');
+  const worker = await getTesseractWorker();
+  setOcrStatus('preprocessing');
+  const preDataURL = preprocessImageData(currentView.imageData, {scale: opts.scale, binarize: opts.binarize, contrast: 1.3});
+  setProgress(5);
+  setOcrStatus('rozpoznawanie');
+  const ret = await worker.recognize(preDataURL);
+  document.getElementById('ocrTextarea').value = ret.data.text; 
+  processedSheets.push({ 
+    name: currentView.name || "Dokument", 
+    rows: ret.data.text.split('\n').map(line => line.trim().split(/\s{2,}/)) 
+  });
+    
+  setProgress(90);
+  const text = ret.data.text || '';
+  setOcrStatus('gotowe');
+  log('OCR zakończone — długość tekstu: ' + text.length);
+  // convert text to table heuristically: split lines, then split columns by multiple spaces or tab, or by detected vertical lines
+  const lines = text.split('\\n').map(l=>l.replace(/\\r/g,'').trim()).filter(Boolean);
+  // attempt to split by tab or multiple spaces
+  const rows = lines.map(line=>{
+    if(line.includes('\\t')) return line.split('\\t').map(s=>s.trim());
+    const parts = line.split(/ {2,}|\\t/).map(s=>s.trim()).filter(Boolean);
+    if(parts.length>1) return parts;
+    // fallback: split by ' | ' or common separators
+    const sepParts = line.split(/\\s*\\|\\s*|;|,\\s(?=\\d{1,3})/).map(s=>s.trim());
+    return sepParts.length>1 ? sepParts : [line];
+  });
+  // If we have overlay lines, attempt to align columns based on vertical positions
+  // For simplicity: if detection found vertical lines, split using approximate x positions by mapping char bounding boxes (advanced) — skipped for simplicity due to time.
+  const normalized = normalizeRows(rows);
+  // Auto-fix small errors if enabled
+  if(autoFix) {
+    // simple: merge rows with single cell that look like continuation of previous (no header)
+    const merged = [];
+    for(let i=0;i<normalized.length;i++){
+      const r = normalized[i];
+      if(r.length===1 && i>0 && normalized[i-1].some(c=>c.length>0)){
+        // attach as continuation to last column
+        normalized[i-1][normalized[i-1].length-1] += ' ' + r[0];
+      } else merged.push(r);
+    }
+    return merged;
+  }
+  return normalized;
+}
+
+/* Process all selected files: for PDFs - render pages and OCR each page; for images - OCR; for docx - parse already */
+processAllBtn.addEventListener('click', async ()=>{
+  if(!files.length) { log('Brak plików do przetworzenia'); return; }
+  processedSheets = []; sheetsList.innerHTML = '';
+  setProgress(2);
+  for(let fi=0;fi<files.length;fi++){
+    const f = files[fi];
+    const ext = (f.name.split('.').pop()||'').toLowerCase();
+    log('Przetwarzanie: ' + f.name);
+    if(ext === 'pdf'){
+      try{
+        const arrayBuffer = await readFileAsArrayBuffer(f);
+        const pdf = await pdfjsLib.getDocument({data:arrayBuffer}).promise;
+        for(let p=1;p<=pdf.numPages;p++){
+          await renderPdfPage(pdf, p);
+          await sleep(150); // allow UI
+          const rows = await runOCROnCurrentCanvas({binarize:true,scale:1.4});
+          processedSheets.push({fileIndex:fi, pageIndex:p, name: f.name + ' - page' + p, rows: rows || [['(brak danych)']]});
+          log('Dodano arkusz: ' + f.name + ' - page ' + p + ' (wierszy: ' + (rows?rows.length:0) +')');
+        }
+      }catch(e){ log('Błąd PDF: ' + e.message); processedSheets.push({fileIndex:fi,pageIndex:0,name:f.name,rows:[['Błąd: '+e.message]]}); }
+    } else if(['png','jpg','jpeg','bmp','webp'].includes(ext)){
+      try{
+        await openFilePreview(fi); // renders image
+        const rows = await runOCROnCurrentCanvas({binarize:true,scale:1.6});
+        processedSheets.push({fileIndex:fi, pageIndex:0, name:f.name, rows: rows || [['(brak danych)']]});
+        log('Dodano arkusz z obrazu: ' + f.name);
+      }catch(e){ log('Błąd OCR obrazu: ' + e.message); processedSheets.push({fileIndex:fi,pageIndex:0,name:f.name,rows:[['Błąd OCR: '+e.message]]}); }
+    } else if(ext === 'docx'){
+      const arr = await parseDocxTables(f);
+      if(arr.length) arr.forEach((t,i)=> processedSheets.push({fileIndex:fi,pageIndex:0,name: f.name + ' - table' + (i+1), rows: normalizeRows(t.rows)}));
+      else processedSheets.push({fileIndex:fi,pageIndex:0,name:f.name,rows:[['(brak tabel w DOCX)']]});
+    } else if(ext === 'doc'){
+      const txt = await f.text();
+      const lines = txt.split('\\n').map(l=>l.trim()).filter(Boolean).slice(0,200).map(l=>[l]);
+      processedSheets.push({fileIndex:fi,pageIndex:0,name:f.name,rows:normalizeRows(lines)});
+    } else {
+      // fallback: try OCR on file as image
+      try{
+        await openFilePreview(fi);
+        const rows = await runOCROnCurrentCanvas({binarize:true,scale:1.4});
+        processedSheets.push({fileIndex:fi,pageIndex:0,name:f.name, rows: rows || [['(brak danych)']]});
+      }catch(e){ processedSheets.push({fileIndex:fi,pageIndex:0,name:f.name,rows:[['Błąd: '+e.message]]}); }
+    }
+    setProgress(10 + Math.round((fi+1)/files.length*80));
+    renderSheetsList();
+  }
+  setProgress(100);
+  log('Przetwarzanie zakończone. Możesz edytować wykryte tabele przed eksportem.');
+});
+
+/* Utility sleep */
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+/* Render sheets list */
+function renderSheetsList(){
+  sheetsList.innerHTML = '';
+  processedSheets.forEach((s,idx)=>{
+    const div = document.createElement('div'); div.style.display='flex'; div.style.justifyContent='space-between'; div.style.alignItems='center'; div.style.marginBottom='6px';
+    const left = document.createElement('div');
+    const nameInput = document.createElement('input'); nameInput.value = s.name; nameInput.style.width='160px';
+    nameInput.onchange = ()=>{ s.name = nameInput.value; };
+    const meta = document.createElement('div'); meta.className='small'; meta.textContent = 'wiersze: ' + s.rows.length;
+    left.appendChild(nameInput); left.appendChild(meta);
+    const actions = document.createElement('div');
+    const viewBtn = document.createElement('button'); viewBtn.className='btn'; viewBtn.textContent='Otwórz'; viewBtn.onclick = ()=>showSheet(idx);
+    const remBtn = document.createElement('button'); remBtn.className='btn'; remBtn.textContent='Usuń'; remBtn.onclick = ()=>{ processedSheets.splice(idx,1); renderSheetsList(); tableEditor.innerHTML=''; };
+    actions.appendChild(viewBtn); actions.appendChild(remBtn);
+    div.appendChild(left); div.appendChild(actions);
+    sheetsList.appendChild(div);
+  });
+}
+
+/* Show sheet in editor */
+function showSheet(sheetIndex){
+  const s = processedSheets[sheetIndex];
+  if(!s) return;
+  currentView.sheetIndex = sheetIndex;
+  tableEditor.innerHTML = '';
+  const tbl = document.createElement('table'); tbl.className='editable';
+  const thead = document.createElement('thead');
+  const headerRow = document.createElement('tr');
+  const cols = s.rows.length? s.rows[0].length : 0;
+  for(let c=0;c<cols;c++){
+    const th = document.createElement('th'); th.contentEditable = 'true'; th.textContent = s.rows[0][c] || ('Col ' + (c+1));
+    th.oninput = ()=>{ /* optional: rename header handling */ };
+    headerRow.appendChild(th);
+  }
+  thead.appendChild(headerRow);
+  tbl.appendChild(thead);
+  const tbody = document.createElement('tbody');
+  for(let r=1;r<s.rows.length;r++){
+    const tr = document.createElement('tr');
+    for(let c=0;c<cols;c++){
+      const td = document.createElement('td');
+      td.contentEditable = 'true';
+      td.textContent = s.rows[r][c] || '';
+      td.oninput = ()=>{ /* mark changes */ };
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+  }
+  tbl.appendChild(tbody);
+  // add buttons to add/remove rows/cols
+  const controls = document.createElement('div'); controls.style.display='flex'; controls.style.gap='6px'; controls.style.marginBottom='6px';
+  const addRow = document.createElement('button'); addRow.className='btn'; addRow.textContent='Dodaj wiersz'; addRow.onclick = ()=>{
+    const nr = new Array(cols).fill(''); s.rows.push(nr);
+    showSheet(sheetIndex);
+  };
+  const remRow = document.createElement('button'); remRow.className='btn'; remRow.textContent='Usuń ostatni wiersz'; remRow.onclick = ()=>{ if(s.rows.length>1){ s.rows.pop(); showSheet(sheetIndex); } };
+  const addCol = document.createElement('button'); addCol.className='btn'; addCol.textContent='Dodaj kolumnę'; addCol.onclick = ()=>{ s.rows.forEach(r=>r.push('')); showSheet(sheetIndex); };
+  const remCol = document.createElement('button'); remCol.className='btn'; remCol.textContent='Usuń ostatnią kolumnę'; remCol.onclick = ()=>{ s.rows.forEach(r=>{ if(r.length>1) r.pop(); }); showSheet(sheetIndex); };
+  controls.appendChild(addRow); controls.appendChild(remRow); controls.appendChild(addCol); controls.appendChild(remCol);
+
+  tableEditor.appendChild(controls);
+  tableEditor.appendChild(tbl);
+}
+
+/* Apply changes from editor back to processedSheets */
+/* ZAPISZ KOREKTĘ (MANUAL OVERRIDE) */
+applyChangesBtn.addEventListener('click', () => {
+    const idx = currentView.sheetIndex;
+    if (idx === null || idx === undefined) { log('STATUS: Brak aktywnego datasetu do zapisu.'); return; }
+    
+    // Pobieramy tekst z Twojego czarnego edytora
+    document.getElementById('ocrTextarea').value = ret.data.text;
+    const rawText = ret.data.text;
+    // Zamieniamy tekst z powrotem na wiersze dla Excela
+    const newRows = rawText.split('\n').map(line => line.trim().split(/\s{2,}/));
+    
+    // Nadpisujemy dane w pamięci systemu
+    processedSheets[idx].rows = newRows;
+    
+    renderSheetsList();
+    log('PROTOKÓŁ: Korekta manualna zapisana dla obiektu: ' + processedSheets[idx].name);
+});
+
+/* Re-run OCR on current canvas (with same settings) */
+reRunOCRBtn.addEventListener('click', async ()=>{
+  if(!currentView.canvas) { log('Brak obrazu do OCR'); return; }
+  const rows = await runOCROnCurrentCanvas({binarize:true,scale:1.6});
+  if(!rows) return;
+  // replace current sheet or add new
+  if(currentView.sheetIndex!==null && currentView.sheetIndex!==undefined){
+    processedSheets[currentView.sheetIndex].rows = rows;
+    renderSheetsList();
+    showSheet(currentView.sheetIndex);
+    log('Ponowne OCR: zastąpiono zawartość aktualnego arkusza');
+  } else {
+    processedSheets.push({ fileIndex: currentView.fileIndex, pageIndex: currentView.pageIndex||0, name: (currentView.name || "Dokument") + "-ocr", rows: ret.data.text.split('\n').map(line => line.trim().split(/\s{2,}/)) });
+    renderSheetsList();
+    log('Ponowne OCR: dodano nowy arkusz');
+  }
+});
+
+    function verifyInvoiceData(rows) {
+    let report = [];
+    log("SYSTEM: Głęboka analiza logiczna w toku...");
+
+    rows.forEach((row, i) => {
+        // Łączymy wiersz w jeden tekst do analizy
+        const lineText = row.join(' ').trim();
+        const upperLine = lineText.toUpperCase();
+        
+        // 1. INTELIGENTNY NIP (Szuka grup dokładnie 10 cyfr)
+        if (upperLine.includes("NIP")) {
+            const nips = lineText.match(/\b\d{10}\b/g) || lineText.match(/\b\d{3}-\d{3}-\d{2}-\d{2}\b/g);
+            if (!nips) {
+                // Jeśli jest słowo NIP, a nie ma 10 cyfr obok siebie
+                report.push(`[LINIA ${i+1}] NIP ERROR -> "${lineText.substring(0,30)}..." (Brak 10 cyfr)`);
+
+            }
+        }
+
+        // 2. MATEMATYKA (Tylko w liniach podsumowań: RAZEM, SUMA, BRUTTO)
+        const summaryKeywords = ["RAZEM", "SUMA", "ZAPŁATY", "BRUTTO", "TOTAL"];
+        if (summaryKeywords.some(k => upperLine.includes(k))) {
+            const amounts = lineText.match(/\d+[,.]\d{2}/g);
+            if (amounts && amounts.length >= 2) {
+                const vals = amounts.map(a => parseFloat(a.replace(',', '.')));
+                const maxVal = Math.max(...vals);
+                const othersSum = vals.reduce((a, b) => a + b, 0) - maxVal;
+                
+                // Tolerancja 0.11 zł na błędy zaokrągleń OCR
+                if (Math.abs(maxVal - othersSum) > 0.11) {
+                    report.push(`[LINIA ${i+1}] MATH ERROR -> "${lineText.substring(0,40)}..." (Suma się nie zgadza)`);
+
+                }
+            }
+        }
+
+        // 3. WERYFIKACJA DAT (Format RRRR-MM-DD lub DD.MM.RRRR)
+        const datePattern = /\b\d{4}-\d{2}-\d{2}\b|\b\d{2}\.\d{2}\.\d{4}\b/g;
+        const dates = lineText.match(datePattern);
+        if (dates) {
+            dates.forEach(d => {
+                const parts = d.includes('-') ? d.split('-') : d.split('.');
+                const year = parseInt(parts[0] > 1000 ? parts[0] : parts[2]);
+                if (year < 2000 || year > 2030) {
+                    report.push(`[LINIA ${i+1}] DATE ERROR -> "${lineText.substring(0,30)}..." (Błędny format)`);
+
+                }
+            });
+        }
+
+        // 4. KONTROLA WALUTY
+        if (upperLine.includes("RAZEM") && !upperLine.includes("PLN") && !upperLine.includes("EUR") && !upperLine.includes("ZŁ")) {
+            // Szukaj fragmentu sprawdzającego walutę
+report.push(`[LINIA ${i+1}] CURRENCY ERROR -> "${lineText.substring(0,30).trim()}..." (Brak lub błędna waluta)`);
+
+        }
+    });
+
+    if (report.length > 0) {
+        log("!!! WYKRYTO ANOMALIE LOGICZNE:");
+        report.forEach(err => log("-> " + err));
+        return false;
+    } else {
+        log("Status: LOGIKA ZWERYFIKOWANA. Dane są spójne.");
+        return true;
+    }
+}
+
+
+
+/* --- SEKCJA EKSPORTU I WERYFIKACJI --- */
+exportBtn.addEventListener('click', () => {
+    if (!processedSheets.length) { log('Brak danych do eksportu.'); return; }
+    
+    // Zbieramy dane do weryfikacji
+    const allRows = processedSheets.flatMap(s => {
+        if (Array.isArray(s.rows)) return s.rows;
+        return s.text ? s.text.split('\n') : [];
+    });
+
+    // Sprawdzamy błędy (Strażnik Logiki)
+    const isDataValid = (typeof verifyInvoiceData === 'function') ? verifyInvoiceData(allRows) : true;
+
+    if (!isDataValid) {
+        document.getElementById('errorOverlay').style.display = 'flex';
+        return; 
+    }
+    
+    // Jeśli wszystko OK, uruchamiamy silnik Excela
+    generateExcelFile();
+});
+
+function generateExcelFile() {
+    // 1. POBIERAMY TREŚĆ PROSTO Z EDYTORA (NA ŻYWO)
+    const currentText = document.getElementById('ocrTextarea').value;
+    const wb = XLSX.utils.book_new();
+
+    processedSheets.forEach((s, index) => {
+        // 2. Jeśli edytujesz właśnie ten plik, bierzemy tekst z edytora
+        // Jeśli plików jest więcej, bierzemy ich treść z pamięci
+        let rawText = s.rows;
+        if (typeof currentView !== 'undefined' && currentView.fileIndex === index) {
+            rawText = currentText;
+        } else if (!rawText) {
+            rawText = s.text || "";
+        }
+
+        const lines = Array.isArray(rawText) ? rawText.join('\n').split('\n') : rawText.split('\n');
+        const keywords = ["FAKTURA", "NIP", "SUMA", "RAZEM", "SPRZEDAWCA", "NABYWCA", "NETTO", "BRUTTO"];
+
+        const formattedRows = lines.map(line => {
+            const cells = line.trim().split(/\s{2,}/);
+            const isImportant = keywords.some(k => line.toUpperCase().includes(k));
+            
+            return cells.map(cell => ({
+                v: cell, 
+                t: 's',
+                s: { font: { bold: isImportant, name: "Courier New" } }
+            }));
+        }).filter(row => row.length > 0);
+
+        const ws = XLSX.utils.aoa_to_sheet(formattedRows);
+        
+        // Auto-szerokość kolumn
+        if (formattedRows.length > 0) {
+            ws['!cols'] = formattedRows.map((_, i) => ({
+                wch: Math.max(...formattedRows.map(row => row[i] ? row[i].v.toString().length : 10)) + 5
+            }));
+        }
+        
+        XLSX.utils.book_append_sheet(wb, ws, s.name.slice(0, 31));
+    });
+
+    XLSX.writeFile(wb, 'Wyrocznia_Raport_Premium.xlsx');
+    log('System: Eksport zakończony sukcesem.');
+}
+
+function forceExport() {
+    document.getElementById('errorOverlay').style.display = 'none';
+    log("OSTRZEŻENIE: Wymuszono eksport danych mimo anomalii.");
+    generateExcelFile();
+}
+
+/* --- SYSTEM DOSTĘPU I INICJALIZACJA --- */
+function checkAccess() {
+    const input = document.getElementById('accessCode');
+    const correctCode = "cieszkowska1995"; 
+
+    if (input.value === correctCode) {
+        document.getElementById('loginOverlay').style.display = 'none';
+        log("System autoryzowany. Witaj, Oliwio.");
+    } else {
+        document.getElementById('loginError').style.display = 'block';
+        input.value = '';
+    }
+}
+
+downloadJSONBtn.addEventListener('click', () => {
+    const data = JSON.stringify(processedSheets, null, 2);
+    const blob = new Blob([data], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'preview.json';
+    document.body.appendChild(a); a.click(); a.remove();
+});
+
+clearAllBtn.addEventListener('click', () => { 
+    processedSheets = []; resetUI(); 
+    document.getElementById('filesInput').value = ''; 
+});
+
+document.getElementById('accessCode')?.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') checkAccess();
+});
+
+window.onload = () => {
+    log("Wyrocznia OS v2.0: Oczekiwanie na autoryzację...");
+};
 </script>
 </body>
 </html>
